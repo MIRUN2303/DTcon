@@ -6,6 +6,7 @@ import AnalogStick from '../joystick/AnalogStick';
 import DPadScreen from '../joystick/DPad';
 import VirtualButton from '../joystick/VirtualButton';
 import JoystickDemo from '../joystick/JoystickDemo';
+import { JoystickBridge } from '../joystick/JoystickBridge';
 import './joystick.css';
 
 const toDpadId: Record<PadDirection, DpadId> = {
@@ -16,9 +17,15 @@ const toDpadId: Record<PadDirection, DpadId> = {
 };
 
 export default function JoystickScreen() {
-  const { go, transportStatus } = useDtcon();
+  const { go, transport, transportStatus } = useDtcon();
   const controller = useRef(new JoystickController()).current;
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const bridge = new JoystickBridge(controller, transport);
+    bridge.start();
+    return () => bridge.stop();
+  }, [controller, transport]);
 
   const handleDpad = useCallback(
     (mask: PadMask) => {

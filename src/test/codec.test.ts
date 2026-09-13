@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PacketCodec, Button, NavAction, SystemAction } from '../protocol/codec';
-import { HEADER_LENGTH, PacketType } from '../protocol/constants';
+import { HEADER_LENGTH, PacketType, GamepadButton, GamepadAxis } from '../protocol/constants';
 import { ProtocolError } from '../protocol/types';
 
 const codec = new PacketCodec();
@@ -61,6 +61,21 @@ describe('PacketCodec', () => {
 
   it('rejects unknown system actions', () => {
     expect(() => codec.encodeSystem(0x63)).toThrow(ProtocolError);
+  });
+
+  it('round-trips joystick button', () => {
+    const packet = codec.decode(codec.encodeJoystickButton(GamepadButton.L1, true));
+    expect(packet.type).toBe(0x31);
+    const decoded = codec.decodeJoystickButton(packet);
+    expect(decoded).toEqual({ button: GamepadButton.L1, pressed: true });
+  });
+
+  it('round-trips joystick axis', () => {
+    const packet = codec.decode(codec.encodeJoystickAxis(GamepadAxis.RightY, -0.5));
+    expect(packet.type).toBe(0x30);
+    const decoded = codec.decodeJoystickAxis(packet);
+    expect(decoded.axis).toBe(GamepadAxis.RightY);
+    expect(decoded.value).toBeCloseTo(-0.5, 3);
   });
 
   it('round-trips ReleaseAll control packet', () => {

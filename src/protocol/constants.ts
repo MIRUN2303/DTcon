@@ -52,6 +52,32 @@ export enum DisconnectReason {
   LivenessTimeout = 2,
 }
 
+export enum GamepadButton {
+  A = 0,
+  B = 1,
+  X = 2,
+  Y = 3,
+  L1 = 4,
+  R1 = 5,
+  L2 = 6,
+  R2 = 7,
+  Select = 8,
+  Start = 9,
+  DpadUp = 10,
+  DpadDown = 11,
+  DpadLeft = 12,
+  DpadRight = 13,
+}
+
+export enum GamepadAxis {
+  LeftX = 0,
+  LeftY = 1,
+  RightX = 2,
+  RightY = 3,
+  L2 = 4,
+  R2 = 5,
+}
+
 export const SCROLL_HORIZONTAL = 0x01;
 
 export const NAV_ACTIONS = new Set<number>(

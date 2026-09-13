@@ -91,6 +91,20 @@ export class PacketCodec {
     return this.encode(0x14, payload, options);
   }
 
+  encodeJoystickButton(button: number, pressed: boolean, options: CodecOptions = {}): Uint8Array {
+    const payload = new Uint8Array(2);
+    payload[0] = button;
+    payload[1] = pressed ? 1 : 0;
+    return this.encode(0x31, payload, options);
+  }
+
+  encodeJoystickAxis(axis: number, value: number, options: CodecOptions = {}): Uint8Array {
+    const payload = new Uint8Array(3);
+    payload[0] = axis;
+    payload.set(int16LE(Math.round(Math.min(1, Math.max(-1, value)) * 1024)), 1);
+    return this.encode(0x30, payload, options);
+  }
+
   encodeDisconnect(reason: number, options: CodecOptions = {}): Uint8Array {
     const payload = new Uint8Array(1);
     payload[0] = reason;
@@ -133,6 +147,17 @@ export class PacketCodec {
   decodeButton(packet: Packet): { button: number; pressed: boolean } {
     if (packet.length < 2) throw new ProtocolError('MOUSE_BUTTON payload shorter than 2');
     return { button: packet.payload[0], pressed: packet.payload[1] === 1 };
+  }
+
+  decodeJoystickButton(packet: Packet): { button: number; pressed: boolean } {
+    if (packet.length < 2) throw new ProtocolError('JOYSTICK_BUTTON payload shorter than 2');
+    return { button: packet.payload[0], pressed: packet.payload[1] === 1 };
+  }
+
+  decodeJoystickAxis(packet: Packet): { axis: number; value: number } {
+    if (packet.length < 3) throw new ProtocolError('JOYSTICK_AXIS payload shorter than 3');
+    const view = new DataView(packet.payload.buffer, packet.payload.byteOffset, packet.payload.byteLength);
+    return { axis: packet.payload[0], value: view.getInt16(1, true) / 1024 };
   }
 
   decodeScroll(packet: Packet): { dx: number; dy: number; flags: number } {
