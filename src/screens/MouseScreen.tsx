@@ -7,6 +7,7 @@ import { nextDpi, prevDpi } from '../storage/preferences';
 import { hasSeenMouseHints, markMouseHintsSeen } from '../storage/hints';
 import ControlRail from '../components/ControlRail';
 import DemoHost from '../components/DemoHost';
+import FullscreenToggle from '../components/FullscreenToggle';
 import './mouse.css';
 
 const SCROLL_SLOP_PX = 8;
@@ -42,14 +43,6 @@ export default function MouseScreen() {
       if (pulseTimer.current) clearTimeout(pulseTimer.current);
     };
   }, []);
-
-  const toggleFullscreen = () => {
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
-    } else {
-      void document.documentElement.requestFullscreen();
-    }
-  };
 
   const controller = useMemo(() => new InputController(transport, () => settingsRef.current), [transport]);
 
@@ -134,8 +127,9 @@ export default function MouseScreen() {
         onHome={() => go('home')}
         onDpi={adjustDpi}
         onNav={(action) => controller.nav(action)}
-        onToggleFullscreen={toggleFullscreen}
       />
+
+      <FullscreenToggle />
 
       <section
         ref={leftRef}

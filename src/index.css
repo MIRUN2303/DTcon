@@ -30,6 +30,15 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
 button {
   font: inherit;
   color: inherit;
@@ -79,6 +88,30 @@ button {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* floating fullscreen toggle, shared by all controller screens */
+.fs-toggle {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-dim);
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.fs-toggle:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  color: #eaf1ff;
 }
 
 .rotate-screen {

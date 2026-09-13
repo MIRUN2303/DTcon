@@ -433,12 +433,24 @@
   }
 }
 
+.ble-modal__saved {
+  margin-top: var(--sp-4);
+}
+
+.ble-modal__saved-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: var(--sp-2);
+}
+
 .ble-modal__list {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  margin-top: var(--sp-3);
 }
 
 .ble-modal__row {

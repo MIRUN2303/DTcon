@@ -188,32 +188,40 @@
   grid-auto-flow: row;
   align-items: center;
   justify-items: center;
-  gap: clamp(4px, 1.4cqh, 12px);
+  gap: clamp(6px, 1.6cqh, 14px);
   min-width: 0;
   min-height: 0;
   padding: 0 clamp(2px, 0.8cqw, 8px);
   overflow: hidden;
 }
 
-.joy-cluster--left {
+/* ------- side clusters (size containers) -------
+   Left and right lean inward; no backdrop panels — controls float
+   directly on the DTcon background. */
+
+.joy-cluster--left,
+.joy-cluster--right {
   grid-area: left;
   container-type: size;
+  transform-origin: 50% 50%;
+}
+
+.joy-cluster--left {
+  transform: rotate(-1deg);
 }
 
 .joy-cluster--right {
   grid-area: right;
-  container-type: size;
+  transform: rotate(1deg);
 }
 
 .joy-cluster--center {
   grid-area: center;
+  container-type: size;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-.joy-cluster--center .joy-selectrow {
-  container-type: size;
+  position: relative;
 }
 
 /* ------- shared 3D glass key ------- */
@@ -293,6 +301,39 @@
   color: #eaf1ff;
 }
 
+/* right half mirrors the gloss from its own outer corner */
+.joy-cluster--right .jk-btn::before {
+  background:
+    radial-gradient(120% 120% at 70% 12%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 42%, transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--joy-rim);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.22),
+    inset 0 6px 14px rgba(0, 0, 0, 0.12),
+    0 10px 20px rgba(0, 0, 0, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.joy-cluster--right .jk-btn--pressed::before {
+  background:
+    radial-gradient(120% 120% at 70% 12%, rgba(123, 166, 255, 0.38), rgba(123, 166, 255, 0.06) 45%, transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 55%, rgba(123, 166, 255, 0.07));
+}
+
+.joy-cluster--right .stick__cap::before {
+  background:
+    radial-gradient(88% 88% at 68% 22%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.08) 40%, transparent 58%),
+    radial-gradient(110% 110% at 50% 88%, rgba(32, 44, 66, 0.7), transparent 55%),
+    linear-gradient(165deg, rgba(157, 179, 245, 0.5), rgba(96, 116, 176, 0.28));
+}
+
+.joy-cluster--right .abxy__btn--pressed::before {
+  background:
+    radial-gradient(120% 120% at 70% 12%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 45%, transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 55%, rgba(123, 166, 255, 0.1));
+}
+
 /* ------- size variants ------- */
 
 .jk-btn--round {
@@ -307,8 +348,8 @@
 }
 
 .jk-btn--pill {
-  width: min(72cqw, calc(100cqw - 4px));
-  height: clamp(28px, 9cqh, 48px);
+  width: clamp(180px, 44cqw, 300px);
+  height: clamp(44px, 11cqh, 60px);
   border-radius: var(--radius-full);
 }
 
@@ -547,27 +588,27 @@
 }
 
 .dpad__arm--up .dpad__chevron {
-  border-top-color: rgba(255, 255, 255, 0.7);
-  border-bottom: none;
-  margin-top: 2px;
-}
-
-.dpad__arm--down .dpad__chevron {
   border-bottom-color: rgba(255, 255, 255, 0.7);
   border-top: none;
   margin-bottom: 2px;
 }
 
-.dpad__arm--left .dpad__chevron {
-  border-left-color: rgba(255, 255, 255, 0.7);
-  border-right: none;
-  margin-left: -2px;
+.dpad__arm--down .dpad__chevron {
+  border-top-color: rgba(255, 255, 255, 0.7);
+  border-bottom: none;
+  margin-top: 2px;
 }
 
-.dpad__arm--right .dpad__chevron {
+.dpad__arm--left .dpad__chevron {
   border-right-color: rgba(255, 255, 255, 0.7);
   border-left: none;
   margin-right: -2px;
+}
+
+.dpad__arm--right .dpad__chevron {
+  border-left-color: rgba(255, 255, 255, 0.7);
+  border-right: none;
+  margin-left: -2px;
 }
 
 .dpad__hub {
@@ -663,12 +704,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(14px, min(3cqw, 4cqh), 34px);
+  gap: clamp(12px, min(3cqw, 4cqh), 30px);
+  padding: clamp(10px, 2cqh, 20px) clamp(8px, 1.6cqw, 16px);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015) 55%, rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
 .joy-select .jk-btn__label {
-  font-size: clamp(9px, min(2cqw, 2.2cqh), 11px);
-  font-weight: 700;
+  font-size: clamp(11px, min(2cqw, 2.2cqh), 13px);
+  font-weight: 800;
   letter-spacing: 0.12em;
   text-indent: 0.12em;
   color: var(--text-dim);

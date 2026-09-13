@@ -7,6 +7,7 @@ import DPadScreen from '../joystick/DPad';
 import VirtualButton from '../joystick/VirtualButton';
 import JoystickDemo from '../joystick/JoystickDemo';
 import { JoystickBridge } from '../joystick/JoystickBridge';
+import FullscreenToggle from '../components/FullscreenToggle';
 import './joystick.css';
 
 const toDpadId: Record<PadDirection, DpadId> = {
@@ -79,6 +80,8 @@ export default function JoystickScreen() {
         <span className="joy-menu-btn__dot" />
         <span className="joy-menu-btn__dot" />
       </button>
+
+      <FullscreenToggle />
 
       {menuOpen && (
         <div className="joy-menu" role="dialog" aria-label="Menu">

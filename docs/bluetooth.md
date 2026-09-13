@@ -18,11 +18,19 @@ Neither characteristic requires a pairing bond; characteristic-encryption isn't 
 
 `src/bluetooth/WebBluetoothTransport.ts` implements `IDtconTransport` against `navigator.bluetooth` (Chrome desktop / Android).
 
-Connection flow:
+Connection flow (best-practice Web Bluetooth pattern):
 
-- Scan (Android `requestLEScan`) lists every BLE advertisement (`acceptAllAdvertisements: true`).
+- **Pair** with `pairNewDevice()` → `requestDevice({ filters: [{ services: [DTconSERVICE_UUID] }], optionalServices: [DTconSERVICE_UUID] })`. The OS chooser shows only peripherals advertising the DTcon service, and the service is granted at pick time.
+- **Reconnect** with `listSavedDevices()` → `navigator.bluetooth.getDevices()`, the list of receivers this origin was previously granted. One tap re-runs `connectToDevice` — no chooser needed.
 - `connectToDevice` runs `gatt.connect()` then `getPrimaryService(DTconSERVICE_UUID)`.
-- Chrome Android only exposes a service when it is **advertised** by the peripheral OR granted via `optionalServices` at `requestDevice` time. A scan-list device grants nothing, so an unadvertised service fails with `NotFoundError: No service matching UUID`. `connectToDevice` then falls back to `requestDevice({ acceptAllDevices: true, optionalServices: [DTconSERVICE_UUID] })`, which grants access to the UUID and reconnects.
+- **Auto-reconnect**: `gattserverdisconnected` flips status to `RECONNECTING` and re-connects for you (1.5 s delay). An intentional `disconnect()` never triggers it.
+
+Best practices followed (per Web Bluetooth spec / WebBluetoothCG discussions):
+
+- Filter `requestDevice` by `services:` instead of `acceptAllDevices` so the chooser isn't a firehose of unrelated BLE devices.
+- Devices found via bare advertising are not connectable; every connection must go through a granted device (`requestDevice` or `getDevices`).
+- Keep the granted device object in the DOM `gattserverdisconnected` listener rather than polling for reconnect.
+- Preserve origin-level device permission so reloads can reuse `getDevices()`.
 
 Therefore the receiver's GATT server must offer:
 
@@ -32,7 +40,7 @@ Therefore the receiver's GATT server must offer:
 | TX characteristic (controller → receiver) | `...0101` |
 | RX characteristic (receiver → controller) | `...0102` |
 
-and should **advertise the service UUID** so background-scan connection works without the chooser fallback. Characteristics require no bonding for phase 1. Keep the `IDtconTransport` contract so swapping `DemoTransport` → `WebBluetoothTransport` in `DtconProvider` is the only change.
+and should **advertise the service UUID** so the pair-time chooser filter matches it. Characteristics require no bonding for phase 1. Keep the `IDtconTransport` contract so swapping `DemoTransport` → `WebBluetoothTransport` in `DtconProvider` is the only change.
 
 ## Transport contract
 
@@ -50,6 +58,4 @@ and should **advertise the service UUID** so background-scan connection works wi
 ## Next steps
 
 1. Implement the receiver app (native or WebBluetooth-peripheral-capable) advertising the service + TX/RX characteristics.
-2. Implement `WebBluetoothTransport` against the sketch above.
-3. Swap the transport in `DtconProvider`.
-4. Add reconnection handling for the `RECONNECTING` state.
+2. `WebBluetoothTransport` is implemented; swap the transport in `DtconProvider` and validate against a real receiver.

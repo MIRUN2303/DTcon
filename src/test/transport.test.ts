@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { DemoTransport } from '../bluetooth/DemoTransport';
 import { DTconSERVICE_UUID, WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
 import { PacketCodec } from '../protocol/codec';
@@ -47,9 +47,12 @@ describe('DemoTransport', () => {
   });
 });
 
-function fakeDevice(serviceFound: boolean, connects: { n: number }) {
+function fakeDevice(serviceFound: boolean, connects = { n: 0 }) {
   return {
     name: 'DTcon',
+    id: 'fake-id',
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
     gatt: {
       connect: async () => {
         connects.n += 1;
@@ -66,40 +69,108 @@ function fakeDevice(serviceFound: boolean, connects: { n: number }) {
 }
 
 describe('WebBluetoothTransport', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('connects when the service is exposed', async () => {
     const connects = { n: 0 };
     const t = new WebBluetoothTransport();
-    (t as unknown as { bt: unknown }).bt = { requestDevice: vi.fn() };
     const result = await t.connectToDevice(fakeDevice(true, connects));
     expect(result.ok).toBe(true);
     expect(connects.n).toBe(1);
     expect(t.getStatus().status).toBe('CONNECTED');
   });
 
-  it('rebinds via requestDevice when the service is not advertised', async () => {
+  it('fails clearly when the service is missing (no silent re-pick)', async () => {
     const connects = { n: 0 };
     const t = new WebBluetoothTransport();
-    let granted = false;
-    (t as unknown as { bt: unknown }).bt = {
-      requestDevice: vi.fn().mockImplementation(async () => {
-        granted = true;
-        return fakeDevice(true, connects);
-      }),
-    };
-    const result = await t.connectToDevice(fakeDevice(false, connects));
-    expect(result.ok).toBe(true);
-    expect(connects.n).toBe(2);
-    expect(granted).toBe(true);
-    expect(t.getStatus().status).toBe('CONNECTED');
-  });
-
-  it('fails with a clear error when rebinding is cancelled', async () => {
-    const connects = { n: 0 };
-    const t = new WebBluetoothTransport();
-    (t as unknown as { bt: unknown }).bt = { requestDevice: vi.fn().mockResolvedValue(undefined) };
     const result = await t.connectToDevice(fakeDevice(false, connects));
     expect(result.ok).toBe(false);
     expect(result.error).toContain(DTconSERVICE_UUID);
     expect(t.getStatus().status).toBe('ERROR');
+  });
+
+  it('listSavedDevices delegates to navigator.bluetooth.getDevices()', async () => {
+    const t = new WebBluetoothTransport();
+    const fakeDevices = [{ id: '1', name: 'My Receiver' }];
+    (t as unknown as { bt: unknown }).bt = { getDevices: vi.fn().mockResolvedValue(fakeDevices) };
+    const saved = await t.listSavedDevices();
+    expect(saved).toHaveLength(1);
+    expect(saved[0].name).toBe('My Receiver');
+  });
+
+  it('listSavedDevices returns empty when getDevices unavailable', async () => {
+    const t = new WebBluetoothTransport();
+    (t as unknown as { bt: unknown }).bt = {};
+    expect(await t.listSavedDevices()).toEqual([]);
+  });
+
+  it('pairNewDevice requests the service-filtered chooser', async () => {
+    const t = new WebBluetoothTransport();
+    const mockDevice = { id: 'p1', name: 'Pair Me' };
+    const requestDevice = vi.fn().mockResolvedValue(mockDevice);
+    (t as unknown as { bt: unknown }).bt = { requestDevice };
+    const result = await t.pairNewDevice();
+    expect(requestDevice).toHaveBeenCalledWith({
+      filters: [{ services: [DTconSERVICE_UUID] }],
+      optionalServices: [DTconSERVICE_UUID],
+    });
+    expect(result).toEqual({ id: 'p1', name: 'Pair Me', device: mockDevice });
+  });
+
+  it('pairNewDevice returns null when the user cancels', async () => {
+    const t = new WebBluetoothTransport();
+    (t as unknown as { bt: unknown }).bt = {
+      requestDevice: vi.fn().mockRejectedValue(Object.assign(new Error(), { name: 'NotFoundError' })),
+    };
+    const result = await t.pairNewDevice();
+    expect(result).toBeNull();
+  });
+
+  it('connect() auto-connects to a saved device', async () => {
+    const t = new WebBluetoothTransport();
+    const connects = { n: 0 };
+    const savedDevice = fakeDevice(true, connects);
+    (t as unknown as { bt: unknown }).bt = {
+      getDevices: vi.fn().mockResolvedValue([savedDevice]),
+    };
+    const result = await t.connect();
+    expect(result.ok).toBe(true);
+    expect(connects.n).toBe(1);
+  });
+
+  it('connect() returns error when no devices saved', async () => {
+    const t = new WebBluetoothTransport();
+    (t as unknown as { bt: unknown }).bt = { getDevices: vi.fn().mockResolvedValue([]) };
+    const result = await t.connect();
+    expect(result.ok).toBe(false);
+    expect(t.getStatus().status).toBe('ERROR');
+  });
+
+  it('sets RECONNECTING when the receiver disconnects unexpectedly', async () => {
+    const t = new WebBluetoothTransport();
+    const savedDevice = fakeDevice(true);
+    let disconnectHandler: (() => void) | undefined;
+    savedDevice.addEventListener.mockImplementation((ev: string, cb: () => void) => {
+      if (ev === 'gattserverdisconnected') disconnectHandler = cb;
+    });
+    await t.connectToDevice(savedDevice);
+    expect(t.getStatus().status).toBe('CONNECTED');
+    disconnectHandler?.();
+    expect(t.getStatus().status).toBe('RECONNECTING');
+  });
+
+  it('ignores gattserverdisconnected after intentional disconnect', async () => {
+    const t = new WebBluetoothTransport();
+    const savedDevice = fakeDevice(true);
+    let disconnectHandler: (() => void) | undefined;
+    savedDevice.addEventListener.mockImplementation((ev: string, cb: () => void) => {
+      if (ev === 'gattserverdisconnected') disconnectHandler = cb;
+    });
+    await t.connectToDevice(savedDevice);
+    await t.disconnect();
+    disconnectHandler?.();
+    expect(t.getStatus().status).toBe('DISCONNECTED');
   });
 });

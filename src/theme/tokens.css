@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Ortland';
+  src: url('../assets/fonts/Ortland.otf') format('opentype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Intrade';
+  src: url('../assets/fonts/Intrade-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #07090c;
   --bg-soft: #0c0f14;
@@ -32,8 +48,9 @@
   --sp-6: 32px;
   --sp-7: 48px;
 
-  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --mono: "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+  --font: "Intrade", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Ortland", "Intrade", "Segoe UI", system-ui, sans-serif;
+  --mono: "Intrade", "Cascadia Code", ui-monospace, monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --glow-mouse: 0 0 24px rgba(34, 211, 238, 0.35);
