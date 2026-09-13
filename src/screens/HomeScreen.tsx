@@ -98,7 +98,6 @@ export default function HomeScreen() {
               key={mode}
               mode={mode}
               order={prefs.modeOrder.indexOf(mode)}
-              comingSoon={mode === 'joystick'}
               dragging={dragging === mode}
               onSelect={(m) => {
                 if (m === 'mouse') go('mouse');
