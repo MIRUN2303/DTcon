@@ -7,6 +7,8 @@
 .mouse.screen {
   position: relative;
   display: grid;
+  align-items: stretch;
+  justify-content: stretch;
   width: 100vw;
   height: 100%;
   height: 100dvh;
@@ -33,6 +35,7 @@
   min-width: 0;
   min-height: 0;
   padding: 10px 8px;
+  overflow: hidden;
   border-right: 1px solid var(--border);
   background: linear-gradient(180deg, #0e1014, #0b0c0f);
 }
@@ -508,6 +511,9 @@
 
 .hints__card {
   width: min(330px, 100%);
+  max-height: calc(100dvh - 2 * var(--sp-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #101116;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);

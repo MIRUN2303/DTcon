@@ -309,8 +309,9 @@
 .ble-modal {
   position: relative;
   width: min(420px, 100%);
-  max-height: 82vh;
+  max-height: min(82vh, calc(100dvh - 2 * var(--sp-4)));
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
@@ -542,4 +543,74 @@
 
 .mode-card:active {
   transform: scale(0.985);
+}
+
+/* ------- landscape phone / short viewports ------- */
+
+@media (max-height: 540px) {
+  .home {
+    padding:
+      max(var(--sp-2), env(safe-area-inset-top)) 0
+      max(var(--sp-2), env(safe-area-inset-bottom));
+  }
+
+  .home__device {
+    aspect-ratio: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: var(--radius);
+    padding: var(--sp-2) var(--sp-4);
+    box-shadow: none;
+  }
+
+  .home__device-notch {
+    display: none;
+  }
+
+  .home__header {
+    margin-top: 0;
+  }
+
+  .home__title {
+    font-size: clamp(16px, 3.4vw, 22px);
+  }
+
+  .home__subtitle {
+    font-size: 10px;
+  }
+
+  .home__modes {
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0;
+  }
+
+  .mode-card.card-spotlight {
+    height: clamp(96px, 28vh, 150px);
+    border-radius: var(--radius);
+  }
+
+  .mode-card__icon {
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
+    border-radius: 12px;
+  }
+
+  .mode-card__title {
+    font-size: 14px;
+  }
+
+  .home__hint {
+    font-size: 10px;
+  }
+
+  .home__ble {
+    padding-top: var(--sp-2);
+  }
+
+  .home__ble-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
 }

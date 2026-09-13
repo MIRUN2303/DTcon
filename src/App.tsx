@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DtconProvider, useDtcon } from './state/DtconProvider';
 import IntroScreen from './screens/IntroScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -28,8 +28,10 @@ function usePortrait(): boolean {
 function Router() {
   const portrait = usePortrait();
   const { screen } = useDtcon();
+  const initial = useMemo(() => new URLSearchParams(window.location.search).get('screen'), []);
+  const active = (initial && initial !== 'intro' ? initial : screen) as typeof screen;
   if (portrait) return <RotateScreen />;
-  switch (screen) {
+  switch (active) {
     case 'intro':
       return <IntroScreen />;
     case 'home':
