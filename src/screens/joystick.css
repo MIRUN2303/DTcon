@@ -487,37 +487,41 @@
 }
 
 .dpad__arm--up {
-  left: 18%;
+  left: 50%;
   top: 0;
   width: 50%;
-  height: 34%;
+  height: 35%;
+  transform: translateX(-50%);
   border-bottom-left-radius: 30%;
   border-bottom-right-radius: 30%;
 }
 
 .dpad__arm--down {
-  left: 18%;
+  left: 50%;
   bottom: 0;
   width: 50%;
-  height: 34%;
+  height: 35%;
+  transform: translateX(-50%);
   border-top-left-radius: 30%;
   border-top-right-radius: 30%;
 }
 
 .dpad__arm--left {
   left: 0;
-  top: 18%;
-  width: 34%;
+  top: 50%;
+  width: 35%;
   height: 50%;
+  transform: translateY(-50%);
   border-top-right-radius: 30%;
   border-bottom-right-radius: 30%;
 }
 
 .dpad__arm--right {
   right: 0;
-  top: 18%;
-  width: 34%;
+  top: 50%;
+  width: 35%;
   height: 50%;
+  transform: translateY(-50%);
   border-top-left-radius: 30%;
   border-bottom-left-radius: 30%;
 }
@@ -544,25 +548,25 @@
 .dpad__arm--up .dpad__chevron {
   border-top-color: rgba(255, 255, 255, 0.7);
   border-bottom: none;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 .dpad__arm--down .dpad__chevron {
   border-bottom-color: rgba(255, 255, 255, 0.7);
   border-top: none;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 
 .dpad__arm--left .dpad__chevron {
   border-left-color: rgba(255, 255, 255, 0.7);
   border-right: none;
-  margin-left: -5px;
+  margin-left: -2px;
 }
 
 .dpad__arm--right .dpad__chevron {
   border-right-color: rgba(255, 255, 255, 0.7);
   border-left: none;
-  margin-right: -5px;
+  margin-right: -2px;
 }
 
 .dpad__hub {
