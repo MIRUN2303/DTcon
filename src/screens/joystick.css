@@ -183,14 +183,15 @@
 
 .joy-cluster {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-auto-flow: row;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(4px, 1.6cqh, 14px);
+  justify-items: center;
+  gap: clamp(4px, 1.4cqh, 12px);
   min-width: 0;
   min-height: 0;
-  padding: 0 clamp(4px, 1.2cqw, 10px);
+  padding: 0 clamp(2px, 0.8cqw, 8px);
   overflow: hidden;
 }
 
@@ -206,6 +207,8 @@
 
 .joy-cluster--center {
   grid-area: center;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
 }
 
@@ -304,8 +307,8 @@
 }
 
 .jk-btn--pill {
-  width: 100%;
-  height: clamp(26px, min(22cqw, 8cqh), 42px);
+  width: min(72cqw, calc(100cqw - 4px));
+  height: clamp(28px, 9cqh, 48px);
   border-radius: var(--radius-full);
 }
 
@@ -331,9 +334,10 @@
 
 .stick {
   position: relative;
-  width: clamp(80px, min(84cqw, 52cqh), 200px);
-  height: clamp(80px, min(84cqw, 52cqh), 200px);
-  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   touch-action: none;
   -webkit-user-select: none;
@@ -456,9 +460,10 @@
 
 .dpad {
   position: relative;
-  flex: 0 0 auto;
-  width: clamp(92px, min(72cqw, 52cqh), 200px);
-  height: clamp(92px, min(72cqw, 52cqh), 200px);
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 22%;
   touch-action: none;
   -webkit-user-select: none;
@@ -589,7 +594,10 @@
 /* ------- face buttons (ABXY diamond) ------- */
 
 .abxy {
-  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
@@ -597,9 +605,7 @@
     '. y .'
     'x . a'
     '. b .';
-  gap: clamp(5px, 1.4cqh, 14px);
-  width: clamp(110px, min(86cqw, 48cqh), 220px);
-  height: clamp(110px, min(86cqw, 48cqh), 220px);
+  gap: clamp(5px, 1.2cqh, 14px);
   place-items: center;
 }
 
