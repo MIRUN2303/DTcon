@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PacketCodec, Button, NavAction } from '../protocol/codec';
-import { HEADER_LENGTH } from '../protocol/constants';
+import { HEADER_LENGTH, PacketType } from '../protocol/constants';
 import { ProtocolError } from '../protocol/types';
 
 const codec = new PacketCodec();
@@ -30,7 +30,7 @@ describe('PacketCodec', () => {
   });
 
   it('accepts only known types', () => {
-    for (const type of [0x01, 0x02, 0x03, 0x04, 0x05, 0x10, 0x11, 0x12, 0x13, 0x30, 0x31]) {
+    for (const type of [0x01, 0x02, 0x03, 0x04, 0x05, 0x70, 0x10, 0x11, 0x12, 0x13, 0x30, 0x31]) {
       expect(() => codec.decode(codec.encodeControl(type))).not.toThrow();
     }
   });
@@ -50,6 +50,12 @@ describe('PacketCodec', () => {
   it('round-trips nav actions', () => {
     const nav = codec.decode(codec.encodeNav(NavAction.NextTrack));
     expect(nav.payload[0]).toBe(NavAction.NextTrack);
+  });
+
+  it('round-trips ReleaseAll control packet', () => {
+    const packet = codec.decode(codec.encodeControl(PacketType.ReleaseAll));
+    expect(packet.type).toBe(0x70);
+    expect(packet.length).toBe(0);
   });
 
   it('throws on payload larger than max', () => {

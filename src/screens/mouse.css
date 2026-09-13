@@ -4,6 +4,11 @@
   gap: var(--sp-3);
 }
 
+.mouse .connection-pill {
+  position: static;
+  align-self: flex-end;
+}
+
 .touchpad {
   flex: 1;
   display: flex;
@@ -14,11 +19,19 @@
   touch-action: none;
 }
 
+.touchpad__mid {
+  flex: 1;
+  display: flex;
+  gap: var(--sp-2);
+  min-height: 0;
+}
+
 .touchpad__scrolltag {
   position: absolute;
-  top: 0;
+  top: 12px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -27,7 +40,6 @@
   background: rgba(34, 211, 238, 0.15);
   color: var(--mouse-a);
   border: 1px solid rgba(34, 211, 238, 0.35);
-  z-index: 2;
 }
 
 .touchpad__surface {
@@ -37,9 +49,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
   touch-action: none;
-  display: grid;
-  place-items: center;
   overflow: hidden;
+  min-width: 0;
 }
 
 .touchpad[data-scroll='1'] .touchpad__surface {
@@ -48,9 +59,15 @@
 }
 
 .touchpad__hint {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 12px;
   color: var(--text-faint);
   pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
 }
 
 .touchpad__corner--tl,
@@ -126,19 +143,19 @@
   background: var(--surface-3);
 }
 
-.side {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-3);
-  width: clamp(240px, 28%, 320px);
+/* Scroll strip hugging the touchpad's right edge */
+.scrollstrip {
+  width: 30px;
+  min-height: 0;
+  align-self: stretch;
+  touch-action: none;
+  transition: width 0.25s var(--ease);
   flex-shrink: 0;
 }
 
-.scrollstrip {
-  width: 36px;
-  flex: 1;
-  touch-action: none;
+.scrollstrip:hover,
+.scrollstrip:has(.scrollzone:active) {
+  width: 46px;
 }
 
 .scrollzone {
@@ -165,6 +182,12 @@
   width: 4px;
   border-radius: var(--radius-full);
   background: var(--border-strong);
+  transition: width 0.25s var(--ease);
+}
+
+.scrollstrip:hover .scrollzone__rail,
+.scrollstrip:has(.scrollzone:active) .scrollzone__rail {
+  width: 6px;
 }
 
 .scrollzone__label {
@@ -176,89 +199,45 @@
   margin-top: var(--sp-3);
 }
 
-.side__toggle {
-  width: 100%;
-  padding: var(--sp-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-dim);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
+/* Demo cursor overlay */
 
-.side__status {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-.side__status-dots {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-faint);
-}
-
-/* Demo host */
 .demohost {
-  width: 100%;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.demohost__bar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  border-bottom: 1px solid var(--border);
-}
-
-.demohost__screen-label {
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-.demohost__screen {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  background: #000;
-  overflow: hidden;
-}
-
-.demohost__fade {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  box-shadow:
-    inset 0 0 40px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  z-index: 2;
 }
 
 .demohost__scrollbar {
   position: absolute;
-  right: 6px;
-  width: 4px;
-  height: 20px;
+  right: 8px;
+  width: 3px;
+  height: 22px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.35);
-  pointer-events: none;
+  background: var(--text-faint);
+  opacity: 0.6;
+}
+
+.demohost__tag {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: var(--warn);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .demohost__cursor {
   position: absolute;
-  top: 0;
   left: 0;
-  will-change: transform;
-  pointer-events: none;
-  z-index: 2;
+  top: 0;
+  will-change: left, top;
+  z-index: 3;
 }
 
 .demohost__cursor-core {
@@ -300,7 +279,6 @@
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   animation: ripple-in 0.35s ease forwards;
-  pointer-events: none;
 }
 
 .demohost__ripple--left {
@@ -322,17 +300,17 @@
 
 .demohost__navflash {
   position: absolute;
-  bottom: 8px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 12px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
   font-size: 11px;
   font-weight: 700;
   color: var(--text);
   animation: flash-out 0.6s ease forwards;
-  pointer-events: none;
 }
 
 @keyframes flash-out {
@@ -445,16 +423,21 @@
     aspect-ratio: 1.6;
   }
 
-  .side {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
+  .touchpad__mid {
+    flex-direction: column;
   }
 
   .scrollstrip {
     width: 100%;
-    height: 48px;
-    flex: none;
+    height: 40px;
+    align-self: auto;
+    flex-shrink: 1;
+  }
+
+  .scrollstrip:hover,
+  .scrollstrip:has(.scrollzone:active) {
+    width: 100%;
+    height: 54px;
   }
 
   .scrollzone {

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDtcon } from '../state/DtconProvider';
 import { GestureEngine } from '../gestures/GestureEngine';
 import { InputController } from '../input/InputController';
@@ -6,15 +6,39 @@ import { Button } from '../protocol/codec';
 import ControlRail from '../components/ControlRail';
 import ScrollZone from '../components/ScrollZone';
 import DemoHost from '../components/DemoHost';
+import ConnectionPill from '../components/ConnectionPill';
 import './mouse.css';
 
 export default function MouseScreen() {
   const { go, prefs, setDpi, transport, transportStatus } = useDtcon();
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const [scrollMode, setScrollMode] = useState(false);
-  const [demosVisible, setDemosVisible] = useState(true);
   const settingsRef = useRef({ dpi: prefs.dpi, scrollSensitivity: prefs.scrollSensitivity });
   settingsRef.current = { dpi: prefs.dpi, scrollSensitivity: prefs.scrollSensitivity };
+
+  useEffect(() => {
+    let wakeLock: { release: () => Promise<void> } | null = null;
+    const nav = navigator as Navigator & { wakeLock?: { request(type: string): Promise<{ release: () => Promise<void> }> } };
+    if (nav.wakeLock) {
+      void nav.wakeLock.request('screen').then(
+        (lock) => {
+          wakeLock = lock;
+        },
+        () => undefined,
+      );
+    }
+    return () => {
+      if (wakeLock) void wakeLock.release();
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void document.documentElement.requestFullscreen();
+    }
+  };
 
   const controller = useMemo(() => new InputController(transport, () => settingsRef.current), [transport]);
 
@@ -46,45 +70,15 @@ export default function MouseScreen() {
         onHome={() => go('home')}
         onCycleDpi={cycleDpi}
         onNav={(action) => controller.nav(action)}
+        onToggleFullscreen={toggleFullscreen}
       />
 
       <div className="touchpad" data-scroll={scrollMode ? '1' : '0'}>
-        {scrollMode && <div className="touchpad__scrolltag">SCROLL</div>}
-        <div
-          className="touchpad__surface"
-          ref={surfaceRef}
-          onPointerDown={(e) => {
-            const [x, y] = rel(e);
-            engine.pointerDown(e.pointerId, x, y);
-          }}
-          onPointerMove={(e) => {
-            const [x, y] = rel(e);
-            engine.pointerMove(e.pointerId, x, y);
-          }}
-          onPointerUp={(e) => engine.pointerUp(e.pointerId)}
-          onPointerCancel={() => engine.pointerCancel()}
-        >
-          <div className="touchpad__corner--tl" />
-          <div className="touchpad__corner--tr" />
-          <div className="touchpad__corner--bl" />
-          <div className="touchpad__corner--br" />
-          {!scrollMode && <p className="touchpad__hint">1 finger: move · 2 fingers: scroll · tap: click</p>}
-        </div>
-        <div className="clickzones">
-          <button className="clickzone" onClick={() => controller.click(Button.Left)}>
-            LEFT
-          </button>
-          <button className="clickzone" onClick={() => controller.click(Button.Right)}>
-            RIGHT
-          </button>
-        </div>
-      </div>
-
-      <div className="side">
-        <div className="scrollstrip">
-          <ScrollZone
-            onEnter={() => engine.setScrollMode(true)}
-            onExit={() => engine.setScrollMode(false)}
+        <ConnectionPill status={transportStatus} />
+        <div className="touchpad__mid">
+          <div
+            className="touchpad__surface"
+            ref={surfaceRef}
             onPointerDown={(e) => {
               const [x, y] = rel(e);
               engine.pointerDown(e.pointerId, x, y);
@@ -94,24 +88,43 @@ export default function MouseScreen() {
               engine.pointerMove(e.pointerId, x, y);
             }}
             onPointerUp={(e) => engine.pointerUp(e.pointerId)}
-            onPointerCancel={() => engine.pointerCancel()}
-          />
+            onPointerCancel={() => {
+              engine.pointerCancel();
+              controller.releaseAll();
+            }}
+          >
+            <div className="touchpad__corner--tl" />
+            <div className="touchpad__corner--tr" />
+            <div className="touchpad__corner--bl" />
+            <div className="touchpad__corner--br" />
+            {!scrollMode && <p className="touchpad__hint">1 finger: move · 2 fingers: scroll · tap: click</p>}
+            {scrollMode && <div className="touchpad__scrolltag">SCROLL</div>}
+            <DemoHost transport={transport} active={transportStatus.isDemo} />
+          </div>
+          <div className="scrollstrip">
+            <ScrollZone
+              onEnter={() => engine.setScrollMode(true)}
+              onExit={() => engine.setScrollMode(false)}
+              onPointerDown={(e) => {
+                const [x, y] = rel(e);
+                engine.pointerDown(e.pointerId, x, y);
+              }}
+              onPointerMove={(e) => {
+                const [x, y] = rel(e);
+                engine.pointerMove(e.pointerId, x, y);
+              }}
+              onPointerUp={(e) => engine.pointerUp(e.pointerId)}
+              onPointerCancel={() => engine.pointerCancel()}
+            />
+          </div>
         </div>
-        {demosVisible ? (
-          <>
-            <DemoHost transport={transport} />
-            <button className="side__toggle" onClick={() => setDemosVisible(false)}>
-              Hide demo
-            </button>
-          </>
-        ) : (
-          <button className="side__toggle" onClick={() => setDemosVisible(true)}>
-            Show demo
+        <div className="clickzones">
+          <button className="clickzone" onClick={() => controller.click(Button.Left)}>
+            LEFT
           </button>
-        )}
-        <div className="side__status">
-          <span>{transportStatus.isDemo ? 'Demo transport' : 'Connected'}</span>
-          <span className="side__status-dots" />
+          <button className="clickzone" onClick={() => controller.click(Button.Right)}>
+            RIGHT
+          </button>
         </div>
       </div>
     </div>

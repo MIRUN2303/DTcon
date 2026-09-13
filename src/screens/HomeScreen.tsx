@@ -3,13 +3,16 @@ import { useDtcon } from '../state/DtconProvider';
 import { ModeId } from '../storage/preferences';
 import ModeCard from '../components/ModeCard';
 import ConnectionPill from '../components/ConnectionPill';
+import BluetoothModal from '../components/BluetoothModal';
+import { WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
 import './home.css';
 
 const LONG_PRESS_MS = 300;
 
 export default function HomeScreen() {
-  const { go, prefs, reorderModes, transportStatus } = useDtcon();
+  const { go, prefs, reorderModes, transportStatus, attachTransport } = useDtcon();
   const [dragging, setDragging] = useState<ModeId | null>(null);
+  const [bleOpen, setBleOpen] = useState(false);
   const slotRef = useRef<HTMLDivElement | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndex = useRef(0);
@@ -90,7 +93,21 @@ export default function HomeScreen() {
           ))}
         </div>
         <p className="home__hint">hold and drag a mode to reorder · tap to open</p>
+        <footer className="home__ble">
+          <button className="home__ble-btn" onClick={() => setBleOpen(true)}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="m7 7 10 10-5 4V3l5 4L7 17" />
+            </svg>
+            {transportStatus.status === 'CONNECTED' ? 'Connected' : 'Connect via Bluetooth'}
+          </button>
+        </footer>
       </div>
+      {bleOpen && (
+        <BluetoothModal
+          onClose={() => setBleOpen(false)}
+          onAttach={(t: WebBluetoothTransport) => attachTransport(t)}
+        />
+      )}
     </div>
   );
 }

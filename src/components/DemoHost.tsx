@@ -12,14 +12,17 @@ interface CursorState {
 
 interface DemoHostProps {
   transport: IDtconTransport;
+  active?: boolean;
 }
 
+const WORLD_W = 320;
+const WORLD_H = 200;
 const DPI_FACTOR = 2;
-const SCREEN_W = 320;
-const SCREEN_H = 200;
 
-export default function DemoHost({ transport }: DemoHostProps) {
-  const [cursor, setCursor] = useState<CursorState>({ x: SCREEN_W / 2, y: SCREEN_H / 2, left: false, right: false });
+const pct = (value: number, max: number) => `${(value / max) * 100}%`;
+
+export default function DemoHost({ transport, active = true }: DemoHostProps) {
+  const [cursor, setCursor] = useState<CursorState>({ x: WORLD_W / 2, y: WORLD_H / 2, left: false, right: false });
   const [ripple, setRipple] = useState<{ id: number; x: number; y: number; kind: 'left' | 'right' } | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const [navFlash, setNavFlash] = useState<string | null>(null);
@@ -39,8 +42,8 @@ export default function DemoHost({ transport }: DemoHostProps) {
           const { dx, dy, buttons } = codec.current.decodeMove(decoded);
           const c = cursorRef.current;
           setCursor({
-            x: Math.min(SCREEN_W - 2, Math.max(2, c.x + dx * DPI_FACTOR)),
-            y: Math.min(SCREEN_H - 2, Math.max(2, c.y + dy * DPI_FACTOR)),
+            x: Math.min(WORLD_W - 2, Math.max(2, c.x + dx * DPI_FACTOR)),
+            y: Math.min(WORLD_H - 2, Math.max(2, c.y + dy * DPI_FACTOR)),
             left: (buttons & Button.Left) !== 0,
             right: (buttons & Button.Right) !== 0,
           });
@@ -64,7 +67,7 @@ export default function DemoHost({ transport }: DemoHostProps) {
         }
         case PacketType.MouseScroll: {
           const { dy } = codec.current.decodeScroll(decoded);
-          setScrollY((s) => Math.min(SCREEN_H * 3, Math.max(0, s + dy * 4)));
+          setScrollY((s) => Math.min(WORLD_H * 3, Math.max(0, s + dy * 4)));
           break;
         }
         case PacketType.MouseNav: {
@@ -78,29 +81,26 @@ export default function DemoHost({ transport }: DemoHostProps) {
     return unsub;
   }, [transport]);
 
+  if (!active) return null;
+
   return (
-    <div className="demohost">
-      <div className="demohost__bar">
-        <span className="badge badge-demo">Demo</span>
-        <span className="demohost__screen-label">host preview</span>
-      </div>
+    <div className="demohost" aria-hidden="true">
+      <div className="demohost__scrollbar" style={{ top: pct(scrollY % (WORLD_H - 24), WORLD_H) }} />
+      <span className="demohost__tag">DEMO CURSOR</span>
+      {navFlash && <span className="demohost__navflash">{navFlash}</span>}
+      {ripple && (
+        <span
+          className={`demohost__ripple demohost__ripple--${ripple.kind}`}
+          style={{ left: pct(ripple.x, WORLD_W), top: pct(ripple.y, WORLD_H) }}
+        />
+      )}
       <div
-        className="demohost__screen"
-        style={{ width: SCREEN_W, height: SCREEN_H }}
-        aria-hidden="true"
+        className="demohost__cursor"
+        style={{ left: pct(cursor.x, WORLD_W), top: pct(cursor.y, WORLD_H) }}
       >
-        <div className="demohost__fade" />
-        <div className="demohost__scrollbar" style={{ top: (scrollY % (SCREEN_H - 24)) * 1 }} />
-        {ripple && <span className={`demohost__ripple demohost__ripple--${ripple.kind}`} style={{ left: ripple.x, top: ripple.y }} />}
-        {navFlash && <span className="demohost__navflash">{navFlash}</span>}
-        <div
-          className="demohost__cursor"
-          style={{ transform: `translate(${cursor.x}px, ${cursor.y}px)` }}
-        >
-          <span className="demohost__cursor-core" />
-          {cursor.left && <span className="demohost__cursor-press demohost__cursor-press--left" />}
-          {cursor.right && <span className="demohost__cursor-press demohost__cursor-press--right" />}
-        </div>
+        <span className="demohost__cursor-core" />
+        {cursor.left && <span className="demohost__cursor-press demohost__cursor-press--left" />}
+        {cursor.right && <span className="demohost__cursor-press demohost__cursor-press--right" />}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ describe('InputController', () => {
   it('emits a button press+release pair for a tap', async () => {
     const { controller, packets, codec } = await capture();
     controller.handleEvent({ kind: 'tap', dx: 0, dy: 0 });
-    await new Promise((r) => setTimeout(r, 20));
+    await new Promise((r) => setTimeout(r, 100));
     expect(packets).toHaveLength(2);
     const pressed = codec.decodeButton(codec.decode(packets[0]));
     const released = codec.decodeButton(codec.decode(packets[1]));

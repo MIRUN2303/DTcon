@@ -10,6 +10,7 @@ export enum PacketType {
   Ping = 0x03,
   Pong = 0x04,
   Disconnect = 0x05,
+  ReleaseAll = 0x70,
   MouseMove = 0x10,
   MouseButton = 0x11,
   MouseScroll = 0x12,

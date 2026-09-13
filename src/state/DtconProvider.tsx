@@ -11,6 +11,7 @@ interface DtconContextValue {
   go: (screen: Screen) => void;
   transport: IDtconTransport;
   transportStatus: TransportStatus;
+  attachTransport: (transport: IDtconTransport) => void;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   prefs: Preferences;
@@ -25,14 +26,13 @@ const DtconContext = createContext<DtconContextValue | null>(null);
 export function DtconProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>('intro');
   const [prefs, setPrefs] = useState<Preferences>(() => loadPreferences());
+  const [transport, setTransport] = useState<IDtconTransport>(() => new DemoTransport());
   const [transportStatus, setTransportStatus] = useState<TransportStatus>(() => ({
     status: 'DISCONNECTED',
     isDemo: true,
     packetsSent: 0,
     bytesSent: 0,
   }));
-
-  const transport = useMemo(() => new DemoTransport(), []);
   const statusRef = useRef<TransportStatus>(transportStatus);
 
   useEffect(() => {
@@ -48,10 +48,17 @@ export function DtconProvider({ children }: { children: ReactNode }) {
   }, [prefs]);
 
   useEffect(() => {
-    void transport.connect();
+    if (transport.isDemo) void transport.connect();
   }, [transport]);
 
   const go = useCallback((next: Screen) => setScreen(next), []);
+
+  const attachTransport = useCallback((next: IDtconTransport) => {
+    setTransport((current) => {
+      if (current !== next && !current.isDemo) void current.disconnect();
+      return next;
+    });
+  }, []);
 
   const connect = useCallback(async () => {
     const result = await transport.connect();
@@ -86,6 +93,7 @@ export function DtconProvider({ children }: { children: ReactNode }) {
       go,
       transport,
       transportStatus,
+      attachTransport,
       connect,
       disconnect,
       prefs,
@@ -99,6 +107,7 @@ export function DtconProvider({ children }: { children: ReactNode }) {
       go,
       transport,
       transportStatus,
+      attachTransport,
       connect,
       disconnect,
       prefs,

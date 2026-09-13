@@ -1,5 +1,6 @@
 import { GestureEvent } from '../gestures/GestureEngine';
 import { PacketCodec, NavAction, Button } from '../protocol/codec';
+import { PacketType } from '../protocol/constants';
 import { IDtconTransport } from '../bluetooth/transport';
 import { clampInt16 } from '../utils/math';
 
@@ -77,6 +78,7 @@ export class InputController {
 
   releaseAll(): void {
     this.heldButtons = 0;
+    void this.transport.send(this.codec.encodeControl(PacketType.ReleaseAll));
   }
 }
 

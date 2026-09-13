@@ -5,6 +5,7 @@ interface ControlRailProps {
   onHome: () => void;
   onCycleDpi: () => void;
   onNav: (action: NavAction) => void;
+  onToggleFullscreen: () => void;
 }
 
 const NAV_ITEMS = [
@@ -14,7 +15,7 @@ const NAV_ITEMS = [
   { label: 'Next', action: NavAction.NextTrack },
 ];
 
-export default function ControlRail({ dpi, onHome, onCycleDpi, onNav }: ControlRailProps) {
+export default function ControlRail({ dpi, onHome, onCycleDpi, onNav, onToggleFullscreen }: ControlRailProps) {
   return (
     <aside className="rail" aria-label="Control rail">
       <button className="rail__btn rail__btn--primary" onClick={onHome} aria-label="Home">
@@ -27,6 +28,10 @@ export default function ControlRail({ dpi, onHome, onCycleDpi, onNav }: ControlR
           {item.label}
         </button>
       ))}
+      <div className="rail__divider" />
+      <button className="rail__btn" onClick={onToggleFullscreen} aria-label="Toggle fullscreen">
+        ⛶
+      </button>
     </aside>
   );
 }
