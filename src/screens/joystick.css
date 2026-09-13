@@ -1,9 +1,8 @@
 /* ============================================================
-   JOYSTICK controller — 3D glassmorphism gamepad.
-   Grid: TOP BAR | LEFT CLUSTER | CENTER | RIGHT CLUSTER
-   Each side cluster is a *size container*; every control is sized
-   in container units (cqw/cqh) so it always fits the actual box
-   on any screen — no vh-only scaling, no clipping, no distortion.
+   JOYSTICK controller — 3D glassmorphism, no header.
+   Single row: LEFT CLUSTER | CENTER | RIGHT CLUSTER
+   Side clusters are size containers; every control sizes in cqw/cqh
+   so it always fits the actual box — phones, tablets, desktop.
    ============================================================ */
 
 .joy.screen {
@@ -18,11 +17,14 @@
   width: 100vw;
   height: 100dvh;
   min-height: 100dvh;
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    'top top top'
-    'left center right';
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'left center right';
   gap: 0;
   overflow: hidden;
   background:
@@ -31,60 +33,109 @@
     linear-gradient(180deg, #0b0d12, #07090d);
 }
 
-/* ------- top bar ------- */
+/* ------- floating menu (top-left) ------- */
 
-.joy-top {
-  grid-area: top;
+.joy-menu-btn {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  z-index: 20;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
-  border-bottom: 1px solid var(--border);
-  background: rgba(9, 11, 15, 0.6);
-  backdrop-filter: blur(8px);
-  z-index: 8;
-}
-
-.joy-top__home {
+  justify-content: center;
+  gap: 4px;
   width: 40px;
   height: 40px;
-  display: grid;
-  place-items: center;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--text-dim);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(0, 0, 0, 0.35);
-  transition:
-    color 0.15s,
-    border-color 0.15s,
-    transform 0.1s;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
 }
 
-.joy-top__home:hover {
-  color: var(--joy-accent);
+.joy-menu-btn__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.joy-menu-btn:hover {
   border-color: rgba(123, 166, 255, 0.4);
+  color: var(--joy-accent);
 }
 
-.joy-top__home:active {
-  transform: scale(0.94);
+.joy-menu-btn--open {
+  border-color: rgba(123, 166, 255, 0.45);
+  background: rgba(123, 166, 255, 0.12);
+  color: #eaf1ff;
 }
 
-.joy-top__title {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.32em;
-  color: var(--text-faint);
-  text-indent: 0.32em;
+/* ------- menu panel ------- */
+
+.joy-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  pointer-events: auto;
+}
+
+.joy-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  border: 0;
+  padding: 0;
+  cursor: default;
+}
+
+.joy-menu__panel {
+  position: relative;
+  margin: max(56px, calc(env(safe-area-inset-top) + 48px)) 0 0 max(8px, env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: rgba(12, 14, 18, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  min-width: 170px;
+}
+
+.joy-menu__home {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.joy-menu__home:hover {
+  background: rgba(123, 166, 255, 0.12);
+  border-color: rgba(123, 166, 255, 0.45);
 }
 
 .joy-status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 12px;
-  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
   color: var(--text-dim);
@@ -135,11 +186,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-evenly;
-  gap: clamp(6px, 2.4cqh, 20px);
+  justify-content: space-between;
+  gap: clamp(4px, 1.6cqh, 14px);
   min-width: 0;
   min-height: 0;
-  padding: clamp(8px, 2cqh, calc(1cqh * 4));
+  padding: 0 clamp(4px, 1.2cqw, 10px);
   overflow: hidden;
 }
 
@@ -182,7 +233,6 @@
     border-color 0.12s ease;
 }
 
-/* glass body: translucent fill + top sheen + recessed depth */
 .jk-btn::before {
   content: '';
   position: absolute;
@@ -240,10 +290,6 @@
   color: #eaf1ff;
 }
 
-.jk-btn--pressed .jk-btn__sub {
-  color: rgba(234, 241, 255, 0.6);
-}
-
 /* ------- size variants ------- */
 
 .jk-btn--round {
@@ -259,7 +305,7 @@
 
 .jk-btn--pill {
   width: 100%;
-  height: clamp(26px, 9cqh, 44px);
+  height: clamp(26px, min(22cqw, 8cqh), 42px);
   border-radius: var(--radius-full);
 }
 
@@ -285,8 +331,8 @@
 
 .stick {
   position: relative;
-  width: clamp(84px, min(88cqw, 56cqh), 216px);
-  height: clamp(84px, min(88cqw, 56cqh), 216px);
+  width: clamp(80px, min(84cqw, 52cqh), 200px);
+  height: clamp(80px, min(84cqw, 52cqh), 200px);
   flex: 0 0 auto;
   border-radius: 50%;
   touch-action: none;
@@ -350,7 +396,6 @@
   touch-action: none;
 }
 
-/* glossy 3D dome */
 .stick__cap::before {
   content: '';
   position: absolute;
@@ -412,8 +457,8 @@
 .dpad {
   position: relative;
   flex: 0 0 auto;
-  width: clamp(100px, min(76cqw, 58cqh), 220px);
-  height: clamp(100px, min(76cqw, 58cqh), 220px);
+  width: clamp(92px, min(72cqw, 52cqh), 200px);
+  height: clamp(92px, min(72cqw, 52cqh), 200px);
   border-radius: 22%;
   touch-action: none;
   -webkit-user-select: none;
@@ -548,9 +593,9 @@
     '. y .'
     'x . a'
     '. b .';
-  gap: clamp(6px, 1.6cqh, 16px);
-  width: clamp(120px, min(92cqw, 52cqh), 240px);
-  height: clamp(120px, min(92cqw, 52cqh), 240px);
+  gap: clamp(5px, 1.4cqh, 14px);
+  width: clamp(110px, min(86cqw, 48cqh), 220px);
+  height: clamp(110px, min(86cqw, 48cqh), 220px);
   place-items: center;
 }
 
@@ -612,12 +657,13 @@
 
 .joy-selectrow {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(14px, 2.2cqh, 34px);
+  gap: clamp(14px, min(3cqw, 4cqh), 34px);
 }
 
 .joy-select .jk-btn__label {
-  font-size: clamp(9px, 2.2cqh, 11px);
+  font-size: clamp(9px, min(2cqw, 2.2cqh), 11px);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-indent: 0.12em;
@@ -657,12 +703,9 @@
   overflow: hidden;
 }
 
-/* compact screens: tuck the readout away, keep clusters breathing */
-@media (max-height: 380px) {
+/* compact screens: hide demo readout */
+@media (max-height: 340px) {
   .joy-demo-wrap {
     display: none;
-  }
-  .joy-cluster {
-    gap: clamp(4px, 2cqh, 10px);
   }
 }

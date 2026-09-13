@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDtcon } from '../state/DtconProvider';
 import { JoystickController, B, AX, DpadId } from '../joystick/commands';
 import { PadDirection, PadMask } from '../joystick/DPadEngine';
@@ -18,6 +18,7 @@ const toDpadId: Record<PadDirection, DpadId> = {
 export default function JoystickScreen() {
   const { go, transportStatus } = useDtcon();
   const controller = useRef(new JoystickController()).current;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleDpad = useCallback(
     (mask: PadMask) => {
@@ -61,18 +62,34 @@ export default function JoystickScreen() {
 
   return (
     <div className="joy screen">
-      <header className="joy-top">
-        <button className="joy-top__home" onClick={() => go('home')} aria-label="Home">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m3 9 9-7 9 7v11a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />
-          </svg>
-        </button>
-        <span className="joy-top__title">JOYSTICK</span>
-        <span className={`joy-status ${statusCls}`} role="status">
-          <span className="joy-status__dot" />
-          {statusLabel}
-        </span>
-      </header>
+      <button
+        className={`joy-menu-btn${menuOpen ? ' joy-menu-btn--open' : ''}`}
+        onClick={() => setMenuOpen((v) => !v)}
+        aria-label="Menu"
+        aria-expanded={menuOpen}
+      >
+        <span className="joy-menu-btn__dot" />
+        <span className="joy-menu-btn__dot" />
+        <span className="joy-menu-btn__dot" />
+      </button>
+
+      {menuOpen && (
+        <div className="joy-menu" role="dialog" aria-label="Menu">
+          <button className="joy-menu__backdrop" onClick={() => setMenuOpen(false)} aria-label="Close menu" />
+          <div className="joy-menu__panel">
+            <button className="joy-menu__home" onClick={() => go('home')}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m3 9 9-7 9 7v11a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />
+              </svg>
+              Home
+            </button>
+            <span className={`joy-status ${statusCls}`} role="status">
+              <span className="joy-status__dot" />
+              {statusLabel}
+            </span>
+          </div>
+        </div>
+      )}
 
       <section className="joy-cluster joy-cluster--left" aria-label="Left controls: L1 trigger, d-pad, left stick, L2 trigger">
         <VirtualButton

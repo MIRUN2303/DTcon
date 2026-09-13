@@ -30,7 +30,7 @@ export default function AnalogStick({ label, ariaLabel, onInput }: AnalogStickPr
       const well = wellRef.current;
       if (!cap || !well) return;
       const range = Math.min(well.clientWidth, well.clientHeight) / 2;
-      const travel = range * 0.72;
+      const travel = range * 0.4;
       cap.style.transform = `translate(calc(-50% + ${value.x * travel}px), calc(-50% + ${value.y * travel}px))`;
       onInput(value);
     },
