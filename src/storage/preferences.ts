@@ -90,3 +90,9 @@ export function nextDpi(current: number): number {
   const next = idx >= 0 ? (idx + 1) % DPI_VALUES.length : 0;
   return DPI_VALUES[next];
 }
+
+export function prevDpi(current: number): number {
+  const idx = DPI_VALUES.indexOf(clampDpi(current));
+  const prev = idx > 0 ? idx - 1 : DPI_VALUES.length - 1;
+  return DPI_VALUES[prev];
+}

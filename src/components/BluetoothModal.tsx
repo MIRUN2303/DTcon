@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScannedDevice, WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
+import SpotlightCard from './SpotlightCard';
 
 interface BluetoothModalProps {
   onClose: () => void;
@@ -64,7 +65,7 @@ export default function BluetoothModal({ onClose, onAttach }: BluetoothModalProp
 
   return (
     <div className="ble-overlay">
-      <div className="ble-modal">
+      <SpotlightCard className="ble-modal" spotlightColor="rgba(138, 255, 60, 0.16)">
         <button className="ble-modal__close" onClick={onClose} aria-label="Close">
           ×
         </button>
@@ -132,7 +133,7 @@ export default function BluetoothModal({ onClose, onAttach }: BluetoothModalProp
         )}
 
         {error && <p className="ble-modal__error">{error}</p>}
-      </div>
+      </SpotlightCard>
     </div>
   );
 }

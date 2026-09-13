@@ -4,6 +4,7 @@ import { ModeId } from '../storage/preferences';
 import ModeCard from '../components/ModeCard';
 import ConnectionPill from '../components/ConnectionPill';
 import BluetoothModal from '../components/BluetoothModal';
+import Ferrofluid from '../components/Ferrofluid';
 import { WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
 import './home.css';
 
@@ -68,6 +69,22 @@ export default function HomeScreen() {
 
   return (
     <div className="home screen">
+      <div className="home__bg" aria-hidden="true">
+        <Ferrofluid
+          colors={['#39FF14', '#A6FF00', '#E9FFD6']}
+          speed={0.6}
+          scale={1.2}
+          turbulence={1.3}
+          fluidity={0.1}
+          rimWidth={0.2}
+          sharpness={2.2}
+          shimmer={1.7}
+          glow={2.4}
+          flowDirection="up"
+          opacity={0.8}
+          mouseDampening={0.1}
+        />
+      </div>
       <ConnectionPill status={transportStatus} />
       <div className="home__device">
         <div className="home__device-notch" />

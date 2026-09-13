@@ -1,235 +1,401 @@
-.mouse {
-  flex-direction: row;
-  padding: max(var(--sp-4), env(safe-area-inset-top)) max(var(--sp-4), env(safe-area-inset-right)) max(var(--sp-4), env(safe-area-inset-bottom)) max(var(--sp-4), env(safe-area-inset-left));
-  gap: var(--sp-3);
+/* ============================================================
+   Mouse controller — full-viewport physical controller.
+   CONTROL RAIL | LEFT PAD | SCROLL | RIGHT PAD
+   Flat 4-column grid; every region is a direct child of .mouse.
+   ============================================================ */
+
+.mouse.screen {
+  position: relative;
+  display: grid;
+  width: 100vw;
+  height: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  grid-template-columns:
+    clamp(76px, 7vw, 110px)
+    minmax(0, 1fr)
+    clamp(36px, 3.5vw, 64px)
+    minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 30%),
+    #0a0b0e;
 }
 
-.mouse .connection-pill {
-  position: static;
-  align-self: flex-end;
-}
+/* ------- full-height control rail (grid col 1) ------- */
 
-.touchpad {
-  flex: 1;
+.rail {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  align-items: stretch;
+  gap: 5px;
   min-width: 0;
-  position: relative;
-  touch-action: none;
-}
-
-.touchpad__mid {
-  flex: 1;
-  display: flex;
-  gap: var(--sp-2);
   min-height: 0;
+  padding: 10px 8px;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, #0e1014, #0b0c0f);
 }
 
-.touchpad__scrolltag {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  background: rgba(34, 211, 238, 0.15);
-  color: var(--mouse-a);
-  border: 1px solid rgba(34, 211, 238, 0.35);
+.rail__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s,
+    box-shadow 0.12s;
 }
 
-.touchpad__surface {
-  position: relative;
-  flex: 1;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  touch-action: none;
-  overflow: hidden;
-  min-width: 0;
+.rail__btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(140, 155, 170, 0.14);
+  color: var(--text);
 }
 
-.touchpad[data-scroll='1'] .touchpad__surface {
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: inset 0 0 60px rgba(34, 211, 238, 0.08);
+.rail__btn:active {
+  background: rgba(255, 255, 255, 0.07);
 }
 
-.touchpad__hint {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
+.rail__btn:focus-visible {
+  outline: 1px solid var(--border-strong);
+  outline-offset: -1px;
+}
+
+.rail__icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.rail__label {
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
-  pointer-events: none;
   white-space: nowrap;
-  z-index: 1;
 }
 
-.touchpad__corner--tl,
-.touchpad__corner--tr,
-.touchpad__corner--bl,
-.touchpad__corner--br {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 1px solid var(--border-strong);
-  pointer-events: none;
+.rail__btn--home:hover,
+.rail__btn--home:active {
+  border-color: rgba(94, 201, 228, 0.3);
+  color: #9fdcee;
 }
 
-.touchpad__corner--tl {
-  top: 8px;
-  left: 8px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.touchpad__corner--tr {
-  top: 8px;
-  right: 8px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.touchpad__corner--bl {
-  bottom: 8px;
-  left: 8px;
-  border-right: none;
-  border-top: none;
-}
-
-.touchpad__corner--br {
-  bottom: 8px;
-  right: 8px;
-  border-left: none;
-  border-top: none;
-}
-
-.clickzones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-2);
-  touch-action: manipulation;
-}
-
-.clickzone {
+.rail__dpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rail__dpi-label {
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.rail__dpi-value {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rail__dpi-ctls {
+  display: flex;
+  gap: 4px;
+}
+
+.rail__dpi-ctl {
+  width: 24px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: var(--sp-3);
-  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
   transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
 }
 
-.clickzone:hover,
-.clickzone:active {
-  background: var(--surface-2);
+.rail__dpi-ctl:hover {
   color: var(--text);
   border-color: var(--border-strong);
 }
 
-.clickzone:active {
-  background: var(--surface-3);
+.rail__dpi-ctl:active {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* Scroll strip hugging the touchpad's right edge */
-.scrollstrip {
-  width: 30px;
-  min-height: 0;
-  align-self: stretch;
-  touch-action: none;
-  transition: width 0.25s var(--ease);
+.rail__sep {
+  height: 1px;
+  margin: 1px 6px;
+  background: var(--border);
   flex-shrink: 0;
 }
 
-.scrollstrip:hover,
-.scrollstrip:has(.scrollzone:active) {
-  width: 46px;
+.rail__grow {
+  flex: 1;
 }
 
-.scrollzone {
-  height: 100%;
-  width: 100%;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
+/* ------- touch surfaces: left (col 2) and right (col 4) ------- */
+
+.pane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  touch-action: none;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 60% at 50% 0%, rgba(255, 255, 255, 0.028), transparent 55%),
+    linear-gradient(160deg, #0e1014, #0a0b0e);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+  transition:
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+.pane::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(140, 155, 170, 0.07);
+  pointer-events: none;
+}
+
+.pane--left {
+  border-right: 1px solid var(--border);
+}
+
+.pane--right {
+  border-left: 1px solid var(--border);
+}
+
+.pane--left.pane--touched {
+  background:
+    radial-gradient(130% 60% at 50% 0%, rgba(94, 201, 228, 0.045), transparent 55%),
+    linear-gradient(160deg, #0e1114, #0a0b0e);
+  box-shadow:
+    inset 0 0 60px rgba(94, 201, 228, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.pane--right.pane--touched {
+  background:
+    radial-gradient(130% 60% at 50% 0%, rgba(111, 145, 235, 0.04), transparent 55%),
+    linear-gradient(160deg, #0e1014, #0a0b0e);
+  box-shadow:
+    inset 0 0 60px rgba(111, 145, 235, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.pane__corner {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border: 1px solid rgba(160, 175, 190, 0.16);
+  pointer-events: none;
+}
+
+.pane__corner--tl {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.pane__corner--br {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ------- center scroll column (grid col 3) ------- */
+
+.scroll-column {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--sp-3) 0;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 0;
   touch-action: none;
-  cursor: default;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, #0d0e11, #0a0b0e);
 }
 
-.scrollzone:active {
-  border-color: rgba(34, 211, 238, 0.5);
-  background: rgba(34, 211, 238, 0.04);
+.scroll-column__handle {
+  position: relative;
+  flex: 0 0 auto;
+  height: 34px;
+  width: 64%;
+  margin-top: 9px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #171920, #101218);
+  border: 1px solid rgba(140, 155, 170, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+  transition:
+    flex 0.18s ease,
+    width 0.18s ease,
+    height 0.18s ease,
+    border-radius 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.scrollzone__rail {
-  flex: 1;
-  width: 4px;
+.scroll-column__knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
+  background: rgba(140, 155, 170, 0.4);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.scroll-column__rail {
+  flex: 1 1 auto;
+  width: 2px;
+  margin-top: 7px;
   border-radius: var(--radius-full);
-  background: var(--border-strong);
-  transition: width 0.25s var(--ease);
+  background: rgba(140, 155, 170, 0.2);
+  opacity: 0.7;
+  transition: opacity 0.18s ease, flex 0.18s ease;
 }
 
-.scrollstrip:hover .scrollzone__rail,
-.scrollstrip:has(.scrollzone:active) .scrollzone__rail {
-  width: 6px;
+.scroll-column--active .scroll-column__handle {
+  flex: 1 1 auto;
+  height: auto;
+  width: 100%;
+  margin-top: 0;
+  border-radius: 0;
+  border-color: rgba(94, 201, 228, 0.35);
+  background: linear-gradient(180deg, rgba(94, 201, 228, 0.06), rgba(94, 201, 228, 0.02));
+  box-shadow: inset 0 0 24px rgba(94, 201, 228, 0.07);
 }
 
-.scrollzone__label {
+.scroll-column--active .scroll-column__knob {
+  background: rgba(160, 220, 236, 0.65);
+}
+
+.scroll-column--active .scroll-column__rail {
+  flex: 0 0 0;
+  margin-top: 0;
+  opacity: 0;
+}
+
+.scroll-column--pulsed .scroll-column__handle {
+  animation: handle-pulse 0.35s ease;
+}
+
+@keyframes handle-pulse {
+  30% {
+    border-color: rgba(94, 201, 228, 0.55);
+  }
+}
+
+/* ------- status pill ------- */
+
+.status {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(7, 9, 12, 0.55);
+  border: 1px solid var(--border);
+  color: var(--text-faint);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: var(--text-faint);
-  writing-mode: vertical-rl;
-  margin-top: var(--sp-3);
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
-/* Demo cursor overlay */
+.status__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.status--demo .status__dot {
+  background: var(--warn);
+  box-shadow: 0 0 5px rgba(251, 191, 36, 0.8);
+}
+
+.status--connected .status__dot {
+  background: var(--ok);
+  box-shadow: 0 0 5px rgba(52, 211, 153, 0.8);
+}
+
+.status--connecting .status__dot,
+.status--reconnecting .status__dot {
+  background: var(--warn);
+  animation: pulse 1s infinite;
+}
+
+.status--error .status__dot {
+  background: var(--danger);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ------- demo simulation (pads + scroll area only) ------- */
 
 .demohost {
   position: absolute;
+  grid-column: 2 / 5;
+  grid-row: 1;
   inset: 0;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .demohost__scrollbar {
   position: absolute;
   right: 8px;
-  width: 3px;
-  height: 22px;
+  width: 2px;
+  height: 20px;
   border-radius: var(--radius-full);
-  background: var(--text-faint);
-  opacity: 0.6;
-}
-
-.demohost__tag {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: var(--warn);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  background: rgba(160, 175, 190, 0.35);
+  opacity: 0.5;
 }
 
 .demohost__cursor {
@@ -237,7 +403,6 @@
   left: 0;
   top: 0;
   will-change: left, top;
-  z-index: 3;
 }
 
 .demohost__cursor-core {
@@ -248,7 +413,7 @@
   height: 0;
   border-style: solid;
   border-width: 0 2px 12px 2px;
-  border-color: transparent transparent #fff transparent;
+  border-color: transparent transparent #dfe6ea transparent;
   filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
 }
 
@@ -319,142 +484,104 @@
   }
 }
 
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
+/* ------- first-use hints ------- */
+
+.hints {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: rgba(5, 6, 9, 0.7);
+  animation: fadedown 0.2s ease;
+}
+
+@keyframes fadedown {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hints__card {
+  width: min(330px, 100%);
+  background: #101116;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hints__title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.hints__sub {
+  margin-top: 2px;
+  color: var(--text-faint);
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-.badge-demo {
-  background: rgba(251, 191, 36, 0.15);
-  color: var(--warn);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-}
-
-/* Rail */
-.rail {
+.hints__list {
+  list-style: none;
+  margin: var(--sp-4) 0;
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  width: clamp(48px, 6vw, 64px);
-  flex-shrink: 0;
-  align-items: center;
+  text-align: left;
 }
 
-.rail__btn {
-  width: 100%;
-  aspect-ratio: 1;
+.hints__list li {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
+  background: #0b0d10;
   border: 1px solid var(--border);
-  background: var(--surface);
+  font-size: 13px;
   color: var(--text-dim);
+}
+
+.hints__list li b {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.hints__got {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: rgba(94, 201, 228, 0.1);
+  border: 1px solid rgba(94, 201, 228, 0.3);
+  color: #9fdcee;
   font-size: 14px;
   font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+  transition: background 0.15s;
 }
 
-.rail__btn:hover {
-  border-color: var(--border-strong);
-  color: var(--text);
-  background: var(--surface-2);
-}
-
-.rail__btn--primary {
-  background: rgba(34, 211, 238, 0.08);
-  border-color: rgba(34, 211, 238, 0.25);
-  color: var(--mouse-a);
-}
-
-.rail__btn--primary:hover {
-  background: rgba(34, 211, 238, 0.15);
-}
-
-.rail__btn--chars {
-  aspect-ratio: auto;
-  padding: var(--sp-1) var(--sp-2);
-}
-
-.rail__dpi-label {
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--text-faint);
-}
-
-.rail__dpi-value {
-  font-size: 10px;
-  font-weight: 700;
-  font-family: var(--mono);
-  color: var(--text-dim);
-}
-
-.rail__divider {
-  width: 60%;
-  height: 1px;
-  background: var(--border);
-  margin: var(--sp-1) 0;
-}
-
-@media (max-width: 600px) and (orientation: portrait) {
-  .mouse {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .rail {
-    flex-direction: row;
-    width: 100%;
-  }
-
-  .rail__btn {
-    aspect-ratio: 1.6;
-  }
-
-  .touchpad__mid {
-    flex-direction: column;
-  }
-
-  .scrollstrip {
-    width: 100%;
-    height: 40px;
-    align-self: auto;
-    flex-shrink: 1;
-  }
-
-  .scrollstrip:hover,
-  .scrollstrip:has(.scrollzone:active) {
-    width: 100%;
-    height: 54px;
-  }
-
-  .scrollzone {
-    flex-direction: row;
-    height: 100%;
-    padding: 0 var(--sp-3);
-  }
-
-  .scrollzone__rail {
-    width: 100%;
-    height: 4px;
-    flex: 1;
-  }
-
-  .scrollzone__label {
-    writing-mode: horizontal-tb;
-    margin-top: 0;
-    margin-left: var(--sp-3);
-  }
+.hints__got:hover {
+  background: rgba(94, 201, 228, 0.16);
 }

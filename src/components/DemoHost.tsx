@@ -86,7 +86,6 @@ export default function DemoHost({ transport, active = true }: DemoHostProps) {
   return (
     <div className="demohost" aria-hidden="true">
       <div className="demohost__scrollbar" style={{ top: pct(scrollY % (WORLD_H - 24), WORLD_H) }} />
-      <span className="demohost__tag">DEMO CURSOR</span>
       {navFlash && <span className="demohost__navflash">{navFlash}</span>}
       {ripple && (
         <span

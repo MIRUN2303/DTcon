@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { DtconProvider, useDtcon } from './state/DtconProvider';
 import IntroScreen from './screens/IntroScreen';
 import HomeScreen from './screens/HomeScreen';
 import MouseScreen from './screens/MouseScreen';
 import JoystickScreen from './screens/JoystickScreen';
+import RotateScreen from './screens/RotateScreen';
 
 export default function App() {
   return (
@@ -12,8 +14,21 @@ export default function App() {
   );
 }
 
+function usePortrait(): boolean {
+  const [portrait, setPortrait] = useState<boolean>(() => window.matchMedia('(orientation: portrait)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(orientation: portrait)');
+    const onChange = () => setPortrait(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return portrait;
+}
+
 function Router() {
+  const portrait = usePortrait();
   const { screen } = useDtcon();
+  if (portrait) return <RotateScreen />;
   switch (screen) {
     case 'intro':
       return <IntroScreen />;

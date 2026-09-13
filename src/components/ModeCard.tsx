@@ -1,4 +1,5 @@
 import { ModeId } from '../storage/preferences';
+import SpotlightCard from './SpotlightCard';
 
 interface ModeCardProps {
   mode: ModeId;
@@ -18,8 +19,9 @@ export default function ModeCard({ mode, order, comingSoon = false, dragging = f
       className={`mode-card__slot ${dragging ? 'mode-card__slot--dragging' : ''}`}
       style={{ '--order': order } as React.CSSProperties}
     >
-      <div
+      <SpotlightCard
         className={`mode-card ${isMouse ? 'mode-card--mouse' : 'mode-card--joystick'}`}
+        spotlightColor="rgba(138, 255, 60, 0.2)"
         onClick={() => onSelect(mode)}
         role="button"
         aria-label={`Open ${mode} mode`}
@@ -38,7 +40,7 @@ export default function ModeCard({ mode, order, comingSoon = false, dragging = f
         >
           <span className="mode-card__grip-dots" />
         </span>
-      </div>
+      </SpotlightCard>
     </div>
   );
 }
