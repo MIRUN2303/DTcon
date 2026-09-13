@@ -1,5 +1,5 @@
 import { GestureEvent } from '../gestures/GestureEngine';
-import { PacketCodec, NavAction, Button } from '../protocol/codec';
+import { PacketCodec, NavAction, Button, SystemAction } from '../protocol/codec';
 import { PacketType } from '../protocol/constants';
 import { IDtconTransport } from '../bluetooth/transport';
 import { clampInt16 } from '../utils/math';
@@ -64,6 +64,29 @@ export class InputController {
           clampInt16(-event.dy * settings.scrollSensitivity),
         ));
         break;
+      case 'zoom':
+        if (event.dy !== 0) {
+          void this.transport.send(this.codec.encodeSystem(SystemAction.Zoom, clampInt16(event.dy)));
+        }
+        break;
+      case 'swipeUp':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.TaskView));
+        break;
+      case 'swipeDown':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.ShowDesktop));
+        break;
+      case 'swipeLeft':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.SwitchApp, -1));
+        break;
+      case 'swipeRight':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.SwitchApp, 1));
+        break;
+      case 'tap3':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.Search));
+        break;
+      case 'tap4':
+        void this.transport.send(this.codec.encodeSystem(SystemAction.ActionCenter));
+        break;
     }
   }
 
@@ -82,4 +105,4 @@ export class InputController {
   }
 }
 
-export { NavAction, Button };
+export { NavAction, Button, SystemAction };

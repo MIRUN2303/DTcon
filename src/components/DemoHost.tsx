@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { PacketCodec, Button, NavAction } from '../protocol/codec';
+import { PacketCodec, Button, NavAction, SystemAction } from '../protocol/codec';
 import { PacketType } from '../protocol/constants';
 import { IDtconTransport } from '../bluetooth/transport';
 
@@ -76,6 +76,25 @@ export default function DemoHost({ transport, active = true }: DemoHostProps) {
           setTimeout(() => setNavFlash(null), 600);
           break;
         }
+        case PacketType.SystemGesture: {
+          const { action, value } = codec.current.decodeSystem(decoded);
+          const base = SysActionLabel[action];
+          if (base) {
+            const suffix =
+              action === SystemAction.Zoom
+                ? value > 0
+                  ? ' in'
+                  : ' out'
+                : action === SystemAction.SwitchApp
+                  ? value < 0
+                    ? ' back'
+                    : ' fwd'
+                  : '';
+            setNavFlash(base + suffix);
+            setTimeout(() => setNavFlash(null), 600);
+          }
+          break;
+        }
       }
     });
     return unsub;
@@ -110,4 +129,13 @@ const ActionLabel: Record<number, string> = {
   [NavAction.Forward]: 'Forward',
   [NavAction.PrevTrack]: 'Prev',
   [NavAction.NextTrack]: 'Next',
+};
+
+const SysActionLabel: Record<number, string> = {
+  [SystemAction.Zoom]: 'Zoom',
+  [SystemAction.TaskView]: 'Task view',
+  [SystemAction.ShowDesktop]: 'Show desktop',
+  [SystemAction.SwitchApp]: 'Switch app',
+  [SystemAction.Search]: 'Search',
+  [SystemAction.ActionCenter]: 'Action center',
 };

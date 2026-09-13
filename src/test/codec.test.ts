@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PacketCodec, Button, NavAction } from '../protocol/codec';
+import { PacketCodec, Button, NavAction, SystemAction } from '../protocol/codec';
 import { HEADER_LENGTH, PacketType } from '../protocol/constants';
 import { ProtocolError } from '../protocol/types';
 
@@ -30,7 +30,7 @@ describe('PacketCodec', () => {
   });
 
   it('accepts only known types', () => {
-    for (const type of [0x01, 0x02, 0x03, 0x04, 0x05, 0x70, 0x10, 0x11, 0x12, 0x13, 0x30, 0x31]) {
+    for (const type of [0x01, 0x02, 0x03, 0x04, 0x05, 0x70, 0x10, 0x11, 0x12, 0x13, 0x14, 0x30, 0x31]) {
       expect(() => codec.decode(codec.encodeControl(type))).not.toThrow();
     }
   });
@@ -50,6 +50,17 @@ describe('PacketCodec', () => {
   it('round-trips nav actions', () => {
     const nav = codec.decode(codec.encodeNav(NavAction.NextTrack));
     expect(nav.payload[0]).toBe(NavAction.NextTrack);
+  });
+
+  it('round-trips system gestures with a negative value', () => {
+    const sys = codec.decodeSystem(codec.decode(codec.encodeSystem(SystemAction.Zoom, -2)));
+    expect(sys).toEqual({ action: SystemAction.Zoom, value: -2 });
+    const app = codec.decodeSystem(codec.decode(codec.encodeSystem(SystemAction.SwitchApp, 1)));
+    expect(app.value).toBe(1);
+  });
+
+  it('rejects unknown system actions', () => {
+    expect(() => codec.encodeSystem(0x63)).toThrow(ProtocolError);
   });
 
   it('round-trips ReleaseAll control packet', () => {

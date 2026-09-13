@@ -8,6 +8,8 @@ import {
   NavAction,
   NAV_ACTIONS,
   PROTOCOL_VERSION,
+  SystemAction,
+  SYSTEM_ACTIONS,
 } from './constants';
 
 export interface CodecOptions {
@@ -79,6 +81,16 @@ export class PacketCodec {
     return this.encode(0x13, payload, options);
   }
 
+  encodeSystem(action: number, value = 0, options: CodecOptions = {}): Uint8Array {
+    if (!SYSTEM_ACTIONS.has(action)) {
+      throw new ProtocolError(`unknown system action: ${action}`);
+    }
+    const payload = new Uint8Array(2);
+    payload[0] = action;
+    payload[1] = value & 0xff;
+    return this.encode(0x14, payload, options);
+  }
+
   encodeDisconnect(reason: number, options: CodecOptions = {}): Uint8Array {
     const payload = new Uint8Array(1);
     payload[0] = reason;
@@ -132,6 +144,12 @@ export class PacketCodec {
       flags: packet.payload[4],
     };
   }
+
+  decodeSystem(packet: Packet): { action: number; value: number } {
+    if (packet.length < 2) throw new ProtocolError('SYSTEM_GESTURE payload shorter than 2');
+    const view = new DataView(packet.payload.buffer, packet.payload.byteOffset, packet.payload.byteLength);
+    return { action: packet.payload[0], value: view.getInt8(1) };
+  }
 }
 
-export { Button, FLAG_ACK_REQUESTED, NavAction };
+export { Button, FLAG_ACK_REQUESTED, NavAction, SystemAction };

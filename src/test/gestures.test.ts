@@ -65,6 +65,65 @@ describe('GestureEngine', () => {
     expect(events.some((e) => e.kind === 'scroll')).toBe(true);
   });
 
+  it('emits zoom from a two-finger pinch', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 20, 50);
+    engine.pointerDown(2, 50, 50);
+    engine.pointerMove(1, 5, 50);
+    engine.pointerMove(1, -10, 50);
+    const zooms = events.filter((e) => e.kind === 'zoom');
+    expect(zooms.length).toBeGreaterThan(0);
+    expect(zooms[zooms.length - 1].dy).toBeGreaterThan(0);
+  });
+
+  it('does not scroll while pinching', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 20, 50);
+    engine.pointerDown(2, 50, 50);
+    engine.pointerMove(1, 4, 50);
+    expect(events.some((e) => e.kind === 'scroll')).toBe(false);
+    expect(events.some((e) => e.kind === 'zoom')).toBe(true);
+  });
+
+  it('emits swipeUp on a three-finger upward swipe', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 10, 40);
+    engine.pointerDown(2, 30, 40);
+    engine.pointerDown(3, 20, 51);
+    engine.pointerMove(1, 10, -20);
+    engine.pointerMove(2, 30, -20);
+    engine.pointerMove(3, 20, -5);
+    expect(events.map((e) => e.kind)).toContain('swipeUp');
+  });
+
+  it('emits tap3 on a three-finger tap', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 10, 10);
+    engine.pointerDown(2, 30, 10);
+    engine.pointerDown(3, 20, 20);
+    engine.pointerUp(1);
+    expect(events.map((e) => e.kind)).toContain('tap3');
+  });
+
+  it('emits tap4 on a four-finger tap', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 10, 10);
+    engine.pointerDown(2, 30, 10);
+    engine.pointerDown(3, 10, 40);
+    engine.pointerDown(4, 30, 40);
+    engine.pointerUp(1);
+    expect(events.map((e) => e.kind)).toContain('tap4');
+  });
+
+  it('suppresses cursor move while a finger of a multi-touch group remains', async () => {
+    const { engine, events } = run();
+    engine.pointerDown(1, 10, 10);
+    engine.pointerDown(2, 30, 10);
+    engine.pointerUp(1);
+    engine.pointerMove(2, 40, 40);
+    expect(events.some((e) => e.kind === 'move')).toBe(false);
+  });
+
   it('cancels cleanly without emitting drag start', async () => {
     const { engine, events } = run();
     engine.pointerDown(1, 10, 10);

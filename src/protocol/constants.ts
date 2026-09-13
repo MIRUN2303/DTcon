@@ -15,6 +15,7 @@ export enum PacketType {
   MouseButton = 0x11,
   MouseScroll = 0x12,
   MouseNav = 0x13,
+  SystemGesture = 0x14,
   JoystickAxis = 0x30,
   JoystickButton = 0x31,
 }
@@ -36,6 +37,15 @@ export enum NavAction {
   NextTrack = 3,
 }
 
+export enum SystemAction {
+  Zoom = 0,
+  TaskView = 1,
+  ShowDesktop = 2,
+  SwitchApp = 3,
+  Search = 4,
+  ActionCenter = 5,
+}
+
 export enum DisconnectReason {
   User = 0,
   TransportError = 1,
@@ -46,4 +56,8 @@ export const SCROLL_HORIZONTAL = 0x01;
 
 export const NAV_ACTIONS = new Set<number>(
   Object.values(NavAction).filter((v): v is number => typeof v === 'number'),
+);
+
+export const SYSTEM_ACTIONS = new Set<number>(
+  Object.values(SystemAction).filter((v): v is number => typeof v === 'number'),
 );

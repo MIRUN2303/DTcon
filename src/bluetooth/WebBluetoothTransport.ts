@@ -11,6 +11,10 @@ export interface ScannedDevice {
   device: unknown;
 }
 
+function deviceLabel(name: string | null | undefined): string {
+  return (name && name.trim()) || 'DTcon device';
+}
+
 type Bt = any;
 
 export class WebBluetoothTransport implements IDtconTransport {
@@ -58,7 +62,7 @@ export class WebBluetoothTransport implements IDtconTransport {
           const device = event.device;
           onDevice({
             id: device?.id ?? Math.random().toString(36).slice(2),
-            name: device?.name ?? event.name ?? 'Unknown device',
+            name: deviceLabel(device?.name ?? event.name),
             rssi: event.rssi,
             device,
           });
@@ -85,7 +89,7 @@ export class WebBluetoothTransport implements IDtconTransport {
         acceptAllDevices: true,
         optionalServices: [DTconSERVICE_UUID],
       });
-      onDevice({ id: device.id, name: device.name ?? 'Unknown device', device });
+      onDevice({ id: device.id, name: deviceLabel(device.name), device });
     } catch (error) {
       onError(error instanceof Error ? error.message : 'No device selected');
     }
@@ -109,7 +113,7 @@ export class WebBluetoothTransport implements IDtconTransport {
       const service = await server.getPrimaryService(DTconSERVICE_UUID);
       this.txChar = await service.getCharacteristic(DTconTX_UUID);
       this.server = server;
-      this.deviceName = (device as Bt).name ?? 'Device';
+      this.deviceName = deviceLabel((device as Bt).name);
       this.setStatus('CONNECTED');
       return { ok: true };
     } catch (error) {

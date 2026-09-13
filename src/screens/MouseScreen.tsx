@@ -130,6 +130,7 @@ export default function MouseScreen() {
     <div className="mouse screen">
       <ControlRail
         dpi={prefs.dpi}
+        connected={transportStatus.status === 'CONNECTED'}
         onHome={() => go('home')}
         onDpi={adjustDpi}
         onNav={(action) => controller.nav(action)}
@@ -139,7 +140,7 @@ export default function MouseScreen() {
       <section
         ref={leftRef}
         className={`pane pane--left${pressed.left ? ' pane--touched' : ''}`}
-        aria-label="Left trackpad: move cursor, tap to left-click, hold and move to drag"
+        aria-label="Left trackpad: move cursor, tap to left-click, hold and move to drag, two fingers to scroll or zoom, three fingers for system actions"
         onPointerDown={(e) => {
           setPressed((p) => ({ ...p, left: true }));
           const [x, y] = padRel(leftRef, e);
@@ -180,7 +181,7 @@ export default function MouseScreen() {
       <section
         ref={rightRef}
         className={`pane pane--right${pressed.right ? ' pane--touched' : ''}`}
-        aria-label="Right trackpad: move cursor, tap to right-click, hold and move to drag"
+        aria-label="Right trackpad: move cursor, tap to right-click, hold and move to drag, two fingers to scroll or zoom, three fingers for system actions"
         onPointerDown={(e) => {
           setPressed((p) => ({ ...p, right: true }));
           const [x, y] = padRel(rightRef, e);
@@ -230,7 +231,11 @@ export default function MouseScreen() {
               </li>
               <li>
                 <span>Right click</span>
-                <b>tap the right pad</b>
+                <b>tap the right pad, or two fingers</b>
+              </li>
+              <li>
+                <span>Double click</span>
+                <b>tap twice</b>
               </li>
               <li>
                 <span>Drag</span>
@@ -238,11 +243,15 @@ export default function MouseScreen() {
               </li>
               <li>
                 <span>Scroll</span>
-                <b>drag the center handle</b>
+                <b>two fingers, or the center handle</b>
               </li>
               <li>
-                <span>Middle click</span>
-                <b>tap the handle</b>
+                <span>Zoom</span>
+                <b>pinch two fingers</b>
+              </li>
+              <li>
+                <span>Apps / desktop</span>
+                <b>three fingers up / down</b>
               </li>
             </ul>
             <button className="hints__got" onClick={dismissHints}>

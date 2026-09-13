@@ -154,6 +154,26 @@
   flex-shrink: 0;
 }
 
+.rail__status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0 10px;
+}
+
+.rail__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+}
+
+.rail__status--on .rail__status-dot {
+  background: var(--ok);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.8);
+}
+
 .rail__grow {
   flex: 1;
 }

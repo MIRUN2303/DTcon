@@ -2,6 +2,7 @@ import { NavAction } from '../protocol/codec';
 
 interface ControlRailProps {
   dpi: number;
+  connected: boolean;
   onHome: () => void;
   onDpi: (delta: 1 | -1) => void;
   onNav: (action: NavAction) => void;
@@ -15,7 +16,7 @@ const NAV_ITEMS = [
   { icon: '▶', label: 'NEXT', action: NavAction.NextTrack },
 ];
 
-export default function ControlRail({ dpi, onHome, onDpi, onNav, onToggleFullscreen }: ControlRailProps) {
+export default function ControlRail({ dpi, connected, onHome, onDpi, onNav, onToggleFullscreen }: ControlRailProps) {
   return (
     <aside className="rail" aria-label="Control rail">
       <button className="rail__btn rail__btn--home" onClick={onHome} aria-label="Home">
@@ -59,6 +60,13 @@ export default function ControlRail({ dpi, onHome, onDpi, onNav, onToggleFullscr
       <button className="rail__btn" onClick={onToggleFullscreen} aria-label="Toggle fullscreen">
         <span className="rail__icon">⛶</span>
       </button>
+      <div
+        className={`rail__status${connected ? ' rail__status--on' : ''}`}
+        role="status"
+        aria-label={connected ? 'Device connected' : 'Device not connected'}
+      >
+        <span className="rail__status-dot" />
+      </div>
     </aside>
   );
 }
