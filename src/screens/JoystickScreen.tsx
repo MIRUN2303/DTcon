@@ -87,13 +87,11 @@ export default function JoystickScreen() {
           ariaLabel="D-pad: move a single direction by pressing one arm, a diagonal by pressing between two arms"
           onDpad={handleDpad}
         />
-        <div className="joy-stick-wrap joy-stick-wrap--left">
-          <AnalogStick
-            label="LS"
-            ariaLabel="Left analog stick: press and drag to move"
-            onInput={(v) => controller.leftStick(v.x, v.y)}
-          />
-        </div>
+        <AnalogStick
+          label="LS"
+          ariaLabel="Left analog stick: press and drag to move"
+          onInput={(v) => controller.leftStick(v.x, v.y)}
+        />
         <VirtualButton
           label="L2"
           variant="pill"
@@ -140,13 +138,11 @@ export default function JoystickScreen() {
           <VirtualButton label="A" className="abxy__btn abxy__btn--a" ariaLabel="A button" onDown={() => controller.buttonDown(B.A)} onUp={() => controller.buttonUp(B.A)} />
           <VirtualButton label="B" className="abxy__btn abxy__btn--b" ariaLabel="B button" onDown={() => controller.buttonDown(B.B)} onUp={() => controller.buttonUp(B.B)} />
         </div>
-        <div className="joy-stick-wrap joy-stick-wrap--right">
-          <AnalogStick
-            label="RS"
-            ariaLabel="Right analog stick: press and drag to move"
-            onInput={(v) => controller.rightStick(v.x, v.y)}
-          />
-        </div>
+        <AnalogStick
+          label="RS"
+          ariaLabel="Right analog stick: press and drag to move"
+          onInput={(v) => controller.rightStick(v.x, v.y)}
+        />
         <VirtualButton
           label="R2"
           variant="pill"

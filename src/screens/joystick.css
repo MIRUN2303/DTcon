@@ -1,26 +1,24 @@
 /* ============================================================
    JOYSTICK controller — 3D glassmorphism gamepad.
    Grid: TOP BAR | LEFT CLUSTER | CENTER | RIGHT CLUSTER
-   Glass keys sit in recessed wells; sticks are glossy domes.
+   Each side cluster is a *size container*; every control is sized
+   in container units (cqw/cqh) so it always fits the actual box
+   on any screen — no vh-only scaling, no clipping, no distortion.
    ============================================================ */
 
 .joy.screen {
   --joy-accent: #7ba6ff;
   --joy-accent-2: #a78bfa;
-  --joy-glass: rgba(255, 255, 255, 0.07);
-  --joy-glass-2: rgba(255, 255, 255, 0.14);
   --joy-rim: rgba(255, 255, 255, 0.12);
-  --joy-inset: rgba(0, 0, 0, 0.5);
 
   position: relative;
   display: grid;
   align-items: stretch;
   justify-content: stretch;
   width: 100vw;
-  height: 100%;
   height: 100dvh;
   min-height: 100dvh;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     'top top top'
@@ -130,27 +128,29 @@
   }
 }
 
-/* ------- clusters ------- */
+/* ------- clusters (size containers) ------- */
 
 .joy-cluster {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(10px, 2.2vh, 22px);
+  justify-content: space-evenly;
+  gap: clamp(6px, 2.4cqh, 20px);
   min-width: 0;
   min-height: 0;
-  padding: clamp(10px, 2vh, 20px);
+  padding: clamp(8px, 2cqh, calc(1cqh * 4));
   overflow: hidden;
 }
 
 .joy-cluster--left {
   grid-area: left;
+  container-type: size;
 }
 
 .joy-cluster--right {
   grid-area: right;
+  container-type: size;
 }
 
 .joy-cluster--center {
@@ -158,12 +158,8 @@
   justify-content: center;
 }
 
-.joy-stick-wrap {
-  flex: 1 1 auto;
-  display: grid;
-  place-items: center;
-  min-height: 0;
-  width: 100%;
+.joy-cluster--center .joy-selectrow {
+  container-type: size;
 }
 
 /* ------- shared 3D glass key ------- */
@@ -248,30 +244,26 @@
   color: rgba(234, 241, 255, 0.6);
 }
 
-/* ------- variants ------- */
+/* ------- size variants ------- */
 
 .jk-btn--round {
-  width: clamp(48px, 6.2vh, 64px);
-  height: clamp(48px, 6.2vh, 64px);
+  width: clamp(44px, min(22cqw, 8.5cqh), 72px);
+  height: clamp(44px, min(22cqw, 8.5cqh), 72px);
 }
 
 .jk-btn--square {
-  width: clamp(52px, 7vh, 68px);
-  height: clamp(52px, 7vh, 68px);
+  width: clamp(38px, min(16cqw, 8cqh), 64px);
+  height: clamp(38px, min(16cqw, 8cqh), 64px);
   border-radius: var(--radius);
 }
 
 .jk-btn--pill {
   width: 100%;
-  min-height: clamp(34px, 4.6vh, 46px);
+  height: clamp(26px, 9cqh, 44px);
   border-radius: var(--radius-full);
 }
 
 /* ------- shoulders / triggers ------- */
-
-.joy-shoulder {
-  flex: 0 0 auto;
-}
 
 .joy-shoulder::before {
   background:
@@ -280,18 +272,12 @@
 }
 
 .joy-shoulder .jk-btn__label {
-  font-size: 13px;
+  font-size: clamp(11px, 3cqh, 14px);
   letter-spacing: 0.1em;
   text-indent: 0.1em;
 }
 
-.joy-shoulder--trigger {
-  color: var(--text-dim);
-}
-
 .joy-shoulder--trigger .jk-btn__label {
-  font-size: 11px;
-  font-weight: 700;
   color: rgba(90, 205, 233, 0.9);
 }
 
@@ -299,8 +285,9 @@
 
 .stick {
   position: relative;
-  width: clamp(120px, 30vh, 190px);
-  height: clamp(120px, 30vh, 190px);
+  width: clamp(84px, min(88cqw, 56cqh), 216px);
+  height: clamp(84px, min(88cqw, 56cqh), 216px);
+  flex: 0 0 auto;
   border-radius: 50%;
   touch-action: none;
   -webkit-user-select: none;
@@ -354,8 +341,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: clamp(54px, 13vh, 82px);
-  height: clamp(54px, 13vh, 82px);
+  width: 58%;
+  height: 58%;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.16s var(--ease);
@@ -409,9 +396,9 @@
 .stick__label {
   position: absolute;
   left: 50%;
-  bottom: clamp(8px, 2.4vh, 16px);
+  bottom: 4%;
   transform: translateX(-50%);
-  font-size: 9px;
+  font-size: clamp(8px, 2cqh, 10px);
   font-weight: 700;
   letter-spacing: 0.18em;
   text-indent: 0.18em;
@@ -425,8 +412,8 @@
 .dpad {
   position: relative;
   flex: 0 0 auto;
-  width: clamp(128px, 14.5vh, 188px);
-  height: clamp(128px, 14.5vh, 188px);
+  width: clamp(100px, min(76cqw, 58cqh), 220px);
+  height: clamp(100px, min(76cqw, 58cqh), 220px);
   border-radius: 22%;
   touch-action: none;
   -webkit-user-select: none;
@@ -561,10 +548,15 @@
     '. y .'
     'x . a'
     '. b .';
-  gap: clamp(10px, 2vh, 18px);
-  width: clamp(150px, 26vh, 210px);
-  height: clamp(150px, 26vh, 210px);
+  gap: clamp(6px, 1.6cqh, 16px);
+  width: clamp(120px, min(92cqw, 52cqh), 240px);
+  height: clamp(120px, min(92cqw, 52cqh), 240px);
   place-items: center;
+}
+
+.abxy__btn {
+  width: 76%;
+  height: 76%;
 }
 
 .abxy__btn--y {
@@ -584,7 +576,7 @@
 }
 
 .abxy__btn .jk-btn__label {
-  font-size: 18px;
+  font-size: clamp(12px, 3.4cqh, 18px);
   font-weight: 700;
 }
 
@@ -621,11 +613,11 @@
 .joy-selectrow {
   display: flex;
   align-items: center;
-  gap: clamp(18px, 3vw, 34px);
+  gap: clamp(14px, 2.2cqh, 34px);
 }
 
 .joy-select .jk-btn__label {
-  font-size: 10px;
+  font-size: clamp(9px, 2.2cqh, 11px);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-indent: 0.12em;
@@ -663,4 +655,14 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+/* compact screens: tuck the readout away, keep clusters breathing */
+@media (max-height: 380px) {
+  .joy-demo-wrap {
+    display: none;
+  }
+  .joy-cluster {
+    gap: clamp(4px, 2cqh, 10px);
+  }
 }
