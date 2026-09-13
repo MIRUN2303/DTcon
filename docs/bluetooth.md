@@ -14,23 +14,25 @@ Reference values (from `shared/protocol/protocol.md`):
 
 Neither characteristic requires a pairing bond; characteristic-encryption isn't used for phase 1.
 
-## Web Bluetooth (reserved)
+## Web Bluetooth
 
-`src/bluetooth/WebBluetoothTransport.ts` is a skeleton implementing `IDtconTransport`. It detects `navigator.bluetooth` support and reports an honest error (`"Web Bluetooth receiver is reserved for the next phase"`) on connect/send — it never pretends to be connected.
+`src/bluetooth/WebBluetoothTransport.ts` implements `IDtconTransport` against `navigator.bluetooth` (Chrome desktop / Android).
 
-Next-phase wiring sketch:
+Connection flow:
 
-```ts
-const device = await navigator.bluetooth.requestDevice({
-  filters: [{ services: [SERVICE_UUID] }],
-});
-const server = await device.gatt?.connect();
-const service = await server?.getPrimaryService(SERVICE_UUID);
-const tx = await service?.getCharacteristic(TX_UUID);
-await tx?.writeValue(packet);   // Map<Uint8Array>, max ~512B enforces our 14B cap anyway
-```
+- Scan (Android `requestLEScan`) lists every BLE advertisement (`acceptAllAdvertisements: true`).
+- `connectToDevice` runs `gatt.connect()` then `getPrimaryService(DTconSERVICE_UUID)`.
+- Chrome Android only exposes a service when it is **advertised** by the peripheral OR granted via `optionalServices` at `requestDevice` time. A scan-list device grants nothing, so an unadvertised service fails with `NotFoundError: No service matching UUID`. `connectToDevice` then falls back to `requestDevice({ acceptAllDevices: true, optionalServices: [DTconSERVICE_UUID] })`, which grants access to the UUID and reconnects.
 
-Keep the `IDtconTransport` contract so swapping `DemoTransport` → `WebBluetoothTransport` in `DtconProvider` is the only change.
+Therefore the receiver's GATT server must offer:
+
+| | UUID |
+| --- | --- |
+| Service | `d8e6f9a0-4000-4000-8000-000000000001` |
+| TX characteristic (controller → receiver) | `...0101` |
+| RX characteristic (receiver → controller) | `...0102` |
+
+and should **advertise the service UUID** so background-scan connection works without the chooser fallback. Characteristics require no bonding for phase 1. Keep the `IDtconTransport` contract so swapping `DemoTransport` → `WebBluetoothTransport` in `DtconProvider` is the only change.
 
 ## Transport contract
 

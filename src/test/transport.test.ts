@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DemoTransport } from '../bluetooth/DemoTransport';
+import { DTconSERVICE_UUID, WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
 import { PacketCodec } from '../protocol/codec';
 
 const codec = new PacketCodec();
@@ -43,5 +44,62 @@ describe('DemoTransport', () => {
     await t.connect();
     await t.disconnect();
     expect(t.getStatus().status).toBe('DISCONNECTED');
+  });
+});
+
+function fakeDevice(serviceFound: boolean, connects: { n: number }) {
+  return {
+    name: 'DTcon',
+    gatt: {
+      connect: async () => {
+        connects.n += 1;
+        return {
+          disconnect: async () => undefined,
+          getPrimaryService: async () => {
+            if (!serviceFound) throw new Error('No service matching UUID ' + DTconSERVICE_UUID);
+            return { getCharacteristic: async () => ({}) };
+          },
+        };
+      },
+    },
+  };
+}
+
+describe('WebBluetoothTransport', () => {
+  it('connects when the service is exposed', async () => {
+    const connects = { n: 0 };
+    const t = new WebBluetoothTransport();
+    (t as unknown as { bt: unknown }).bt = { requestDevice: vi.fn() };
+    const result = await t.connectToDevice(fakeDevice(true, connects));
+    expect(result.ok).toBe(true);
+    expect(connects.n).toBe(1);
+    expect(t.getStatus().status).toBe('CONNECTED');
+  });
+
+  it('rebinds via requestDevice when the service is not advertised', async () => {
+    const connects = { n: 0 };
+    const t = new WebBluetoothTransport();
+    let granted = false;
+    (t as unknown as { bt: unknown }).bt = {
+      requestDevice: vi.fn().mockImplementation(async () => {
+        granted = true;
+        return fakeDevice(true, connects);
+      }),
+    };
+    const result = await t.connectToDevice(fakeDevice(false, connects));
+    expect(result.ok).toBe(true);
+    expect(connects.n).toBe(2);
+    expect(granted).toBe(true);
+    expect(t.getStatus().status).toBe('CONNECTED');
+  });
+
+  it('fails with a clear error when rebinding is cancelled', async () => {
+    const connects = { n: 0 };
+    const t = new WebBluetoothTransport();
+    (t as unknown as { bt: unknown }).bt = { requestDevice: vi.fn().mockResolvedValue(undefined) };
+    const result = await t.connectToDevice(fakeDevice(false, connects));
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain(DTconSERVICE_UUID);
+    expect(t.getStatus().status).toBe('ERROR');
   });
 });

@@ -97,7 +97,6 @@ export class WebBluetoothTransport implements IDtconTransport {
   }
 
   async connectToDevice(device: unknown): Promise<TransportResult> {
-    const d = device as { gatt?: { connect(): Promise<Bt> } };
     try {
       if (this.server) {
         try {
@@ -108,17 +107,47 @@ export class WebBluetoothTransport implements IDtconTransport {
         this.server = null;
         this.txChar = null;
       }
-      const server: Bt = await d.gatt?.connect();
-      if (!server) throw new Error('Device refused connection');
+      if (await this.openService(device)) return { ok: true };
+      if (typeof this.bt?.requestDevice === 'function') {
+        const picked: Bt = await this.bt.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [DTconSERVICE_UUID],
+        });
+        if (picked && (await this.openService(picked))) return { ok: true };
+        const message = picked
+          ? 'Device refused connection'
+          : `No service matching UUID ${DTconSERVICE_UUID}; the receiver must advertise it or be re-picked from the chooser`;
+        this.setStatus('ERROR', message);
+        return { ok: false, error: message };
+      }
+      const message = `No service matching UUID ${DTconSERVICE_UUID}; the receiver must advertise the service`;
+      this.setStatus('ERROR', message);
+      return { ok: false, error: message };
+    } catch (error) {
+      this.setStatus('ERROR', error instanceof Error ? error.message : 'Connection failed');
+      return { ok: false, error: error instanceof Error ? error.message : 'Connection failed' };
+    }
+  }
+
+  private async openService(device: unknown): Promise<boolean> {
+    const d = device as { gatt?: { connect(): Promise<Bt> } };
+    const server: Bt = await d.gatt?.connect();
+    if (!server) throw new Error('Device refused connection');
+    try {
       const service = await server.getPrimaryService(DTconSERVICE_UUID);
       this.txChar = await service.getCharacteristic(DTconTX_UUID);
       this.server = server;
       this.deviceName = deviceLabel((device as Bt).name);
       this.setStatus('CONNECTED');
-      return { ok: true };
+      return true;
     } catch (error) {
-      this.setStatus('ERROR', error instanceof Error ? error.message : 'Connection failed');
-      return { ok: false, error: error instanceof Error ? error.message : 'Connection failed' };
+      try {
+        server.disconnect();
+      } catch {
+        // ignore
+      }
+      if (error instanceof Error && /No service matching UUID/.test(error.message)) return false;
+      throw error;
     }
   }
 
