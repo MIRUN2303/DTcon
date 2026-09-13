@@ -334,9 +334,7 @@
 
 .stick {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: clamp(84px, min(60cqw, 30cqh), 190px);
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   touch-action: none;
@@ -460,9 +458,7 @@
 
 .dpad {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: clamp(92px, min(64cqw, 32cqh), 200px);
   aspect-ratio: 1 / 1;
   border-radius: 22%;
   touch-action: none;
@@ -594,9 +590,7 @@
 /* ------- face buttons (ABXY diamond) ------- */
 
 .abxy {
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: clamp(104px, min(72cqw, 34cqh), 220px);
   aspect-ratio: 1 / 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
