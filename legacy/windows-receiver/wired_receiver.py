@@ -98,11 +98,11 @@ def _key(vk, down):
 
 # ── Minimal WebSocket server (stdlib only) ──────────────────────────────────
 
-WS_GUID = b"258EAFA5-E914-47DA-95CA-5AB9D111CF85"
+WS_GUID = b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 
 def _ws_accept_key(key: str) -> str:
-    return base64.b64encode(hashlib.sha1((key + WS_GUID).encode()).digest()).decode()
+    return base64.b64encode(hashlib.sha1(key.encode() + WS_GUID).digest()).decode()
 
 
 def _ws_read_frame(buf: bytearray) -> tuple[int, bytes] | None:
@@ -345,6 +345,21 @@ async def main():
 
 
 if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        # Verify WS frame parse/write round-trips and DTcon header decode.
+        masked = bytearray([0x82, 0x85, 0x01, 0x02, 0x03, 0x04])
+        masked += bytes([b ^ masked[2 + i % 4] for i, b in enumerate(b"hello")])
+        buf = bytearray(masked)
+        opcode, payload = _ws_read_frame(buf)
+        assert opcode == 0x02 and payload == b"hello" and len(buf) == 0, "binary frame round-trip"
+        want = bytes([0x80 | 0x02, 0x02]) + b"hi"
+        assert _ws_write_frame(0x02, b"hi") == want, "server frame encoding"
+        assert _ws_accept_key("dGhlIHNhbXBsZSBub25jZQ==") == "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=", "RFC6455 handshake"
+        r = Receiver()
+        pkt = bytes([0x01, 0x10, 0, 0, 2, 0, 0, 1])
+        assert r.handle(pkt) == P_MOUSE_MOVE, "mouse move dispatch"
+        print("self-test OK")
+        sys.exit(0)
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

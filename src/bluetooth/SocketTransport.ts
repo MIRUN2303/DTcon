@@ -11,6 +11,7 @@ export type SocketLike = {
 export type SocketFactory = (address: string) => SocketLike;
 
 const RECONNECT_DELAY_MS = 1500;
+const CONNECT_TIMEOUT_MS = 3000;
 
 /** Wired transport over a local socket (USB tethering creates a network over the cable). */
 export class SocketTransport implements IDtconTransport {
@@ -83,9 +84,13 @@ export class SocketTransport implements IDtconTransport {
       const sock: SocketLike = this.createSocket(this.address);
       this.socket = sock;
       sock.binaryType = 'arraybuffer';
-      sock.addEventListener('open', () => this.onSocketOpen(sock));
-      sock.addEventListener('close', () => this.onSocketClose(sock));
-      sock.addEventListener('error', () => this.onSocketError(sock));
+      const timer = setTimeout(() => {
+        sock.close();
+        this.setStatus('ERROR', `No receiver at ${this.address}`);
+      }, CONNECT_TIMEOUT_MS);
+      sock.addEventListener('open', () => { clearTimeout(timer); this.onSocketOpen(sock); });
+      sock.addEventListener('close', () => { clearTimeout(timer); this.onSocketClose(sock); });
+      sock.addEventListener('error', () => { clearTimeout(timer); this.onSocketError(sock); });
       return { ok: true };
     } catch (error) {
       this.setStatus('ERROR', error instanceof Error ? error.message : 'Connection failed');

@@ -6,8 +6,8 @@ import SpotlightCard from './SpotlightCard';
 
 const SUBNET = '192.168.42';
 const WS_PORT = 8222;
-const PROBE_BATCH = 15;
-const PROBE_TIMEOUT_MS = 800;
+const PROBE_BATCH = 20;
+const PROBE_TIMEOUT_MS = 300;
 
 function probeWs(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
