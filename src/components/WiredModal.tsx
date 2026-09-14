@@ -62,6 +62,11 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
   const abortRef = useRef<AbortController | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => unsubRef.current?.();
+  }, []);
 
   const refresh = (t: SocketTransport) => {
     setStatus(t.getStatus());
@@ -69,27 +74,30 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
   };
 
   const doConnect = async (addr: string) => {
+    // Unsubscribe from the previous transport so its late events don't leak in.
+    unsubRef.current?.();
     const url = addr.startsWith('ws://') || addr.startsWith('wss://') ? addr : `ws://${addr}`;
     setWiredAddress(url);
     const t = new SocketTransport(url);
     setTransport(t);
     setError(null);
-    setConnecting(true);
-    const unsub = refresh(t);
-    try {
-      const result = await t.connect();
-      if (result.ok) {
-        onAttach(t);
-      } else {
-        setError(result.error ?? 'Connection failed');
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setConnecting(false);
-      unsub();
-    }
+    unsubRef.current = refresh(t);
+    await t.connect();
   };
+
+  useEffect(() => {
+    // Drive UI purely from live transport status; keep listening the whole time
+    // the modal is open (do NOT unsubscribe right after connect() resolves).
+    if (status?.status === 'CONNECTED' && transport) {
+      setConnecting(false);
+      onAttach(transport);
+    } else if (status?.status === 'ERROR' || status?.status === 'RECONNECTING' || status?.status === 'DISCONNECTED') {
+      setConnecting(false);
+    } else if (status?.status === 'CONNECTING') {
+      setConnecting(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, transport]);
 
   const connect = async (event: FormEvent) => {
     event.preventDefault();
@@ -179,7 +187,9 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
               Connected to <strong>{transport?.getAddress()}</strong>
             </p>
           )}
-          {error && <p className="ble-modal__error">{error}</p>}
+          {(error || status?.lastError) && (
+            <p className="ble-modal__error">{error ?? status?.lastError}</p>
+          )}
 
           <div className="wired-modal__actions">
             {status?.status === 'CONNECTED' ? (

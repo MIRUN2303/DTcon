@@ -20,9 +20,10 @@ if not exist "%DEST%" mkdir "%DEST%"
 copy /Y "%~dp0wired_receiver.py" "%SCRIPT%" >nul
 
 :: Create VBS launcher (runs Python hidden, no console window)
+:: No & signs here on purpose: batch treats & as a command separator.
 > "%LAUNCHER%" (
     echo Set WshShell = CreateObject^("WScript.Shell"^)
-    echo WshShell.Run """" & "%PYTHON%" & """ """ & "%SCRIPT% & """", 0, False
+    echo WshShell.Run "python ""%SCRIPT%""", 0, False
 )
 
 :: Copy to Startup folder

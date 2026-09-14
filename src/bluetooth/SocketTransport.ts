@@ -30,6 +30,7 @@ export class SocketTransport implements IDtconTransport {
   private socket: SocketLike | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private intentionalDisconnect = false;
+  private everConnected = false;
   private sendQueue: Uint8Array[] = [];
 
   constructor(
@@ -47,6 +48,7 @@ export class SocketTransport implements IDtconTransport {
 
   private onSocketOpen = (sock: SocketLike) => {
     if (this.socket !== sock) return;
+    this.everConnected = true;
     this.setStatus('CONNECTED');
     const queue = this.sendQueue.splice(0);
     for (const packet of queue) {
@@ -58,6 +60,12 @@ export class SocketTransport implements IDtconTransport {
     if (this.socket !== sock) return;
     this.socket = null;
     if (this.intentionalDisconnect) return;
+    // Only auto-reconnect after a connection that actually succeeded;
+    // a failed connect attempt (or connect timeout) should surface as ERROR, not loop.
+    if (!this.everConnected) {
+      this.setStatus('ERROR', `No receiver at ${this.address}`);
+      return;
+    }
     this.setStatus('RECONNECTING');
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = setTimeout(() => {
