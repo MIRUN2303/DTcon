@@ -8,8 +8,7 @@ import { hasSeenMouseHints, markMouseHintsSeen } from '../storage/hints';
 import ControlRail from '../components/ControlRail';
 import DemoHost from '../components/DemoHost';
 import FullscreenToggle from '../components/FullscreenToggle';
-import RippleDistortion from '../components/RippleDistortion';
-import padSurface from '../assets/pad-surface.svg';
+import LiquidEther from '../components/LiquidEther';
 import './mouse.css';
 
 const SCROLL_SLOP_PX = 8;
@@ -131,25 +130,23 @@ export default function MouseScreen() {
         onNav={(action) => controller.nav(action)}
       />
 
-      <RippleDistortion
-        className="pad-water"
-        src={padSurface}
-        brushSize={140}
-        strength={0.25}
-        swirl={1.2}
-        rings={3}
-        spread={4}
-        fade={2.5}
-        spacing={10}
-        dispersion={0.03}
-        glint={0.35}
-        tint="#5ec9e4"
-        tintAmount={0.5}
-        highlightColor="#ffffff"
-        grayscale
-        trigger="both"
-        clickStrength={2.2}
-        quality="medium"
+      <LiquidEther
+        className="liquid-ether"
+        colors={['#5ec9e4', '#8a9cf5', '#b497cf']}
+        mouseForce={20}
+        cursorSize={120}
+        resolution={0.5}
+        isViscous={false}
+        iterationsPoisson={18}
+        iterationsViscous={18}
+        autoDemo
+        autoSpeed={0.4}
+        autoIntensity={1.4}
+        takeoverDuration={0.3}
+        autoResumeDelay={2000}
+        autoRampDuration={0.6}
+        isBounce={false}
+        BFECC
       />
 
       <FullscreenToggle />
