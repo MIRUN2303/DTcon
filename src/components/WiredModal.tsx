@@ -1,8 +1,51 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useDtcon } from '../state/DtconProvider';
 import { IDtconTransport, TransportStatus } from '../bluetooth/transport';
 import { SocketTransport } from '../bluetooth/SocketTransport';
 import SpotlightCard from './SpotlightCard';
+
+const SUBNET = '192.168.42';
+const WS_PORT = 8222;
+const PROBE_BATCH = 15;
+const PROBE_TIMEOUT_MS = 800;
+
+function probeWs(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(url);
+    const timer = setTimeout(() => { ws.close(); reject(new Error('timeout')); }, PROBE_TIMEOUT_MS);
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = () => { clearTimeout(timer); ws.close(); resolve(url); };
+    ws.onerror = () => { clearTimeout(timer); reject(new Error('fail')); };
+  });
+}
+
+function raceToFirst<T>(promises: Promise<T>[]): Promise<T | null> {
+  return new Promise((resolve) => {
+    let left = promises.length;
+    if (left === 0) { resolve(null); return; }
+    for (const p of promises) {
+      p.then((v) => { left = -1; resolve(v); }).catch(() => { if (--left === 0) resolve(null); });
+    }
+  });
+}
+
+async function discoverReceiver(onProgress: (msg: string) => void, signal: AbortSignal): Promise<string | null> {
+  for (let start = 1; start <= 254; start += PROBE_BATCH) {
+    if (signal.aborted) return null;
+    const end = Math.min(start + PROBE_BATCH - 1, 254);
+    onProgress(`Scanning ${SUBNET}.${start}–${end}…`);
+    const batch: Promise<string>[] = [];
+    for (let i = start; i <= end; i++) {
+      batch.push(probeWs(`ws://${SUBNET}.${i}:${WS_PORT}`));
+    }
+    const result = await raceToFirst(batch);
+    if (result) {
+      const m = result.match(/([\d.]+):\d+$/);
+      return m ? m[1] : null;
+    }
+  }
+  return null;
+}
 
 interface WiredModalProps {
   onClose: () => void;
@@ -11,21 +54,23 @@ interface WiredModalProps {
 
 export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
   const { prefs, setWiredAddress } = useDtcon();
-  const [address, setAddress] = useState(prefs.wiredAddress || 'ws://192.168.42.129:8222');
+  const [address, setAddress] = useState(prefs.wiredAddress || '');
   const [transport, setTransport] = useState<SocketTransport | null>(null);
   const [status, setStatus] = useState<TransportStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanMsg, setScanMsg] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
 
   const refresh = (t: SocketTransport) => {
     setStatus(t.getStatus());
     return t.onStatusChange(setStatus);
   };
 
-  const connect = async (event: FormEvent) => {
-    event.preventDefault();
-    setWiredAddress(address);
-    const url = address.startsWith('ws://') || address.startsWith('wss://') ? address : `ws://${address}`;
+  const doConnect = async (addr: string) => {
+    const url = addr.startsWith('ws://') || addr.startsWith('wss://') ? addr : `ws://${addr}`;
+    setWiredAddress(url);
     const t = new SocketTransport(url);
     setTransport(t);
     setError(null);
@@ -46,9 +91,33 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
     }
   };
 
+  const connect = async (event: FormEvent) => {
+    event.preventDefault();
+    void doConnect(address);
+  };
+
   const disconnect = () => {
     void transport?.disconnect();
   };
+
+  useEffect(() => {
+    if (prefs.wiredAddress || abortRef.current) return;
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setScanning(true);
+    discoverReceiver(setScanMsg, ac.signal).then((found) => {
+      if (ac.signal.aborted) return;
+      setScanning(false);
+      setScanMsg('');
+      abortRef.current = null;
+      if (found) {
+        setAddress(found);
+        void doConnect(found);
+      }
+    });
+    return () => { ac.abort(); abortRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const label = status
     ? status.status === 'CONNECTED'
@@ -81,6 +150,10 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
           </div>
         </header>
 
+        {scanning && (
+          <p className="ble-modal__sub wired-modal__scan">{scanMsg || 'Scanning…'}</p>
+        )}
+
         <form onSubmit={connect}>
           <label className="wired-modal__field">
             Receiver address
@@ -98,7 +171,7 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
             />
           </label>
           <p className="ble-modal__sub">
-            Enable USB tethering on the phone, keep the laptop receiver running, then enter its IP and port above.
+            Enable USB tethering, keep the laptop receiver running. The app scans automatically, or enter the address manually.
           </p>
 
           {status && status.status === 'CONNECTED' && (
@@ -114,7 +187,7 @@ export default function WiredModal({ onClose, onAttach }: WiredModalProps) {
                 Disconnect
               </button>
             ) : (
-              <button type="submit" className="ble-modal__done" disabled={connecting}>
+              <button type="submit" className="ble-modal__done" disabled={connecting || !address}>
                 {connecting ? 'Connecting…' : 'Connect'}
               </button>
             )}
