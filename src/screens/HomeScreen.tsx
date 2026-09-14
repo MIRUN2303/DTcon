@@ -3,17 +3,16 @@ import { useDtcon } from '../state/DtconProvider';
 import { ModeId } from '../storage/preferences';
 import ModeCard from '../components/ModeCard';
 import ConnectionPill from '../components/ConnectionPill';
-import BluetoothModal from '../components/BluetoothModal';
+import ConnectModal from '../components/ConnectModal';
 import Ferrofluid from '../components/Ferrofluid';
-import { WebBluetoothTransport } from '../bluetooth/WebBluetoothTransport';
 import './home.css';
 
 const LONG_PRESS_MS = 300;
 
 export default function HomeScreen() {
-  const { go, prefs, reorderModes, transportStatus, attachTransport } = useDtcon();
+  const { go, prefs, reorderModes, transportStatus, transport, attachTransport } = useDtcon();
   const [dragging, setDragging] = useState<ModeId | null>(null);
-  const [bleOpen, setBleOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const slotRef = useRef<HTMLDivElement | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndex = useRef(0);
@@ -110,20 +109,28 @@ export default function HomeScreen() {
         </div>
         <p className="home__hint">hold and drag a mode to reorder · tap to open</p>
         <footer className="home__ble">
-          <button className="home__ble-btn" onClick={() => setBleOpen(true)}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="m7 7 10 10-5 4V3l5 4L7 17" />
-            </svg>
-            {transportStatus.status === 'CONNECTED' ? 'Connected' : 'Connect via Bluetooth'}
+          <button className="home__ble-btn" onClick={() => setConnectOpen(true)}>
+            {transportStatus.status === 'CONNECTED' ? (
+              <>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Connected via {transport.displayName}
+              </>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 3v13" />
+                  <path d="m9 12 3 3 3-3" />
+                  <path d="M5 21h14" />
+                </svg>
+                Connect
+              </>
+            )}
           </button>
         </footer>
       </div>
-      {bleOpen && (
-        <BluetoothModal
-          onClose={() => setBleOpen(false)}
-          onAttach={(t: WebBluetoothTransport) => attachTransport(t)}
-        />
-      )}
+      {connectOpen && <ConnectModal onClose={() => setConnectOpen(false)} onAttach={attachTransport} />}
     </div>
   );
 }

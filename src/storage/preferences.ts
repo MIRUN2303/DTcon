@@ -8,6 +8,7 @@ export interface Preferences {
   scrollSensitivity: number;
   modeOrder: ModeId[];
   lastMode: ModeId;
+  wiredAddress: string;
 }
 
 export const DPI_VALUES = [
@@ -19,6 +20,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   scrollSensitivity: 1.0,
   modeOrder: ['mouse', 'joystick'],
   lastMode: 'mouse',
+  wiredAddress: '',
 };
 
 const STORAGE_KEY = 'dtcon.prefs.v1';
@@ -53,6 +55,10 @@ function normalizeModeOrder(value: unknown): ModeId[] {
   return order;
 }
 
+function normalizeWiredAddress(value: unknown): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
+}
+
 export function loadPreferences(): Preferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -67,6 +73,7 @@ export function loadPreferences(): Preferences {
       scrollSensitivity: clampSensitivity(parsed.scrollSensitivity),
       modeOrder,
       lastMode,
+      wiredAddress: normalizeWiredAddress(parsed.wiredAddress),
     };
   } catch {
     return { ...DEFAULT_PREFERENCES };
@@ -81,6 +88,7 @@ export function savePreferences(prefs: Preferences): void {
     lastMode: (MODES as readonly string[]).includes(prefs.lastMode as string)
       ? prefs.lastMode
       : DEFAULT_PREFERENCES.lastMode,
+    wiredAddress: normalizeWiredAddress(prefs.wiredAddress),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
 }

@@ -18,6 +18,7 @@ interface DtconContextValue {
   setDpi: (dpi: number) => void;
   setScrollSensitivity: (sensitivity: number) => void;
   setLastMode: (mode: ModeId) => void;
+  setWiredAddress: (address: string) => void;
   reorderModes: (from: number, to: number) => void;
 }
 
@@ -83,6 +84,10 @@ export function DtconProvider({ children }: { children: ReactNode }) {
     setPrefs((p) => ({ ...p, lastMode: mode }));
   }, []);
 
+  const setWiredAddress = useCallback((address: string) => {
+    setPrefs((p) => ({ ...p, wiredAddress: address.trim() }));
+  }, []);
+
   const reorderModes = useCallback((from: number, to: number) => {
     setPrefs((p) => ({ ...p, modeOrder: moveItem(p.modeOrder, from, to) }));
   }, []);
@@ -100,6 +105,7 @@ export function DtconProvider({ children }: { children: ReactNode }) {
       setDpi,
       setScrollSensitivity,
       setLastMode,
+      setWiredAddress,
       reorderModes,
     }),
     [
@@ -114,6 +120,7 @@ export function DtconProvider({ children }: { children: ReactNode }) {
       setDpi,
       setScrollSensitivity,
       setLastMode,
+      setWiredAddress,
       reorderModes,
     ],
   );

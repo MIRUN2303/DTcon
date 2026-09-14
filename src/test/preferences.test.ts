@@ -26,12 +26,19 @@ describe('preferences', () => {
 
   it('round-trips saved preferences', () => {
     mockStorage();
-    savePreferences({ dpi: 1600, scrollSensitivity: 2.0, modeOrder: ['joystick', 'mouse'], lastMode: 'joystick' });
+    savePreferences({
+      dpi: 1600,
+      scrollSensitivity: 2.0,
+      modeOrder: ['joystick', 'mouse'],
+      lastMode: 'joystick',
+      wiredAddress: 'ws://localhost:8222',
+    });
     expect(loadPreferences()).toEqual({
       dpi: 1600,
       scrollSensitivity: 2.0,
       modeOrder: ['joystick', 'mouse'],
       lastMode: 'joystick',
+      wiredAddress: 'ws://localhost:8222',
     });
   });
 
